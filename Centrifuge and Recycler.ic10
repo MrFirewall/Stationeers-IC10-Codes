@@ -1,0 +1,81 @@
+# Hashes der Geräte
+define Centrifuge 690945935
+define Recycler -1633947337
+
+# FIX 1: Ein IC-Tick dauert 0,5 Sekunden (2 Ticks pro Sekunde).
+# 5 Minuten = 300 Sekunden * 2 Ticks = 600
+define Timeout 1800
+
+# FIX 2: Zeit zum Auswerfen (15 Sekunden * 2 Ticks = 30 Ticks)
+define EjectTime 180
+
+main:
+yield
+# Recycler permanent an
+sb Recycler On 1
+
+# Statuswerte im Batch auslesen
+lb r0 Centrifuge Error Maximum
+lb r1 Centrifuge Open Maximum
+lb r2 Centrifuge Reagents Maximum
+
+# --- Timer Logik ---
+# Wenn Klappe offen ist (r1 = 1), Auswurf-Timer hochzählen
+beq r1 1 tick_eject_timer
+move r14 0 # Reset Auswurf-Timer, wenn zu
+    
+# Wenn Klappe zu ist und Reagenzien drin sind (>0), Timeout-Timer hochzählen
+bgt r2 0 tick_timeout_timer
+move r15 0 # Reset Timeout-Timer, wenn komplett leer
+j process_logic
+
+tick_eject_timer:
+add r14 r14 1
+move r15 0 # Timeout-Timer blockieren, solange Klappe offen ist
+j process_logic
+
+tick_timeout_timer:
+add r15 r15 1
+
+process_logic:
+# --- Steuerungs-Logik ---
+
+# 1. Reguläres Limit erreicht? (Error = 1 UND Open = 0)
+seq r3 r0 1
+seq r4 r1 0
+and r5 r3 r4
+bgt r5 0 open_centrifuge
+
+# 2. Timeout erreicht? (Timer r15 >= Timeout UND Open = 0)
+seq r4 r1 0
+sge r5 r15 Timeout
+and r6 r4 r5
+bgt r6 0 open_centrifuge
+
+# 3. Entleeren fertig? (Auswurf-Timer r14 >= EjectTime UND Open = 1)
+# HIER IST DER ZWEITE FIX: Wir warten exakt 15 Sekunden, statt auf 0 Reagenzien zu prüfen.
+seq r3 r1 1
+sge r4 r14 EjectTime
+and r5 r3 r4
+bgt r5 0 close_centrifuge
+
+# 4. Normalbetrieb (Sicherstellen, dass sie läuft, wenn zu)
+beq r1 0 run_centrifuge
+j main
+
+
+# --- Aktionen ---
+
+open_centrifuge:
+sb Centrifuge Open 1
+move r15 0 # Timeout resetten
+j main
+
+close_centrifuge:
+sb Centrifuge Open 0
+move r14 0 # Auswurf-Timer resetten
+j main
+
+run_centrifuge:
+sb Centrifuge On 1
+j main

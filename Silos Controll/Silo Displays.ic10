@@ -1,0 +1,102 @@
+define SILO_HASH 1155865682
+define LED_HASH -815193061
+define MEM_HASH -851746783
+define CONSOLE_HASH 801677497
+define IceOxit HASH("IceOxit")
+define ICON_IceOxit -1805394113
+define IceFluechtigeStoffe HASH("IceFluechtigeStoffe")
+define ICON_IceFluechtigeStoffe 1253102035
+define IceNitrit HASH("IceNitrit")
+define ICON_IceNitrit -1499471529
+define IRON HASH("Iron")
+define ICON_IRON 1758427767
+define COPPER HASH("Copper")
+define ICON_COPPER -707307845
+define GOLD HASH("Gold")
+define ICON_GOLD -1348105509
+define Silicon HASH("Silicon")
+define ICON_Silicon 1103972403
+define Coal HASH("Coal")
+define ICON_Coal 1724793494
+define Lead HASH("Lead")
+define ICON_Lead -190236170
+define Nickel HASH("Nickel")
+define ICON_Nickel 1830218956
+define Silver HASH("Silver")
+define ICON_Silver -916518678
+define Cobalt HASH("Cobalt")
+define ICON_Cobalt -983091249
+define Uranium HASH("Uranium")
+define ICON_Uranium -1516581844
+define IceWater HASH("IceWater")
+define ICON_IceWater 1217489948
+define Steel HASH("Steel")
+define ICON_Steel -654790771
+define Elec HASH("Elec")
+define ICON_Elec 502280180
+define Inv HASH("Inv")
+define ICON_Inv -297990285
+define Const HASH("Const")
+define ICON_Const 1058547521
+define Sold HASH("Sold")
+define ICON_Sold -82508479
+start:
+lbn r0 SILO_HASH IceOxit Quantity Average
+sbn LED_HASH IceOxit Setting r0
+sbn MEM_HASH IceOxit Setting ICON_IceOxit
+lbn r0 SILO_HASH IceFluechtigeStoffe Quantity Average
+sbn LED_HASH IceFluechtigeStoffe Setting r0
+sbn MEM_HASH IceFluechtigeStoffe Setting ICON_IceFluechtigeStoffe
+lbn r0 SILO_HASH IceNitrit Quantity Average
+sbn LED_HASH IceNitrit Setting r0
+sbn MEM_HASH IceNitrit Setting ICON_IceNitrit
+lbn r0 SILO_HASH IRON Quantity Average
+sbn LED_HASH IRON Setting r0
+sbn MEM_HASH IRON Setting ICON_IRON
+lbn r0 SILO_HASH COPPER Quantity Average
+sbn LED_HASH COPPER Setting r0
+sbn MEM_HASH COPPER Setting ICON_COPPER
+lbn r0 SILO_HASH GOLD Quantity Average
+sbn LED_HASH GOLD Setting r0
+sbn MEM_HASH GOLD Setting ICON_GOLD
+lbn r0 SILO_HASH Silicon Quantity Average
+sbn LED_HASH Silicon Setting r0
+sbn MEM_HASH Silicon Setting ICON_Silicon
+lbn r0 SILO_HASH Coal Quantity Average
+sbn LED_HASH Coal Setting r0
+sbn MEM_HASH Coal Setting ICON_Coal
+lbn r0 SILO_HASH Lead Quantity Average
+sbn LED_HASH Lead Setting r0
+sbn MEM_HASH Lead Setting ICON_Lead
+lbn r0 SILO_HASH Nickel Quantity Average
+sbn LED_HASH Nickel Setting r0
+sbn MEM_HASH Nickel Setting ICON_Nickel
+lbn r0 SILO_HASH Silver Quantity Average
+sbn LED_HASH Silver Setting r0
+sbn MEM_HASH Silver Setting ICON_Silver
+lbn r0 SILO_HASH Cobalt Quantity Average
+sbn LED_HASH Cobalt Setting r0
+sbn MEM_HASH Cobalt Setting ICON_Cobalt
+lbn r0 SILO_HASH Uranium Quantity Average
+sbn LED_HASH Uranium Setting r0
+sbn MEM_HASH Uranium Setting ICON_Uranium
+lbn r0 SILO_HASH IceWater Quantity Average
+sbn LED_HASH IceWater Setting r0
+sbn MEM_HASH IceWater Setting ICON_IceWater
+lbn r0 SILO_HASH Steel Quantity Average
+sbn LED_HASH Steel Setting r0
+sbn MEM_HASH Steel Setting ICON_Steel
+lbn r0 SILO_HASH Elec Quantity Average
+sbn LED_HASH Elec Setting r0
+sbn MEM_HASH Elec Setting ICON_Elec
+lbn r0 SILO_HASH Inv Quantity Average
+sbn LED_HASH Inv Setting r0
+sbn MEM_HASH Inv Setting ICON_Inv
+lbn r0 SILO_HASH Const Quantity Average
+sbn LED_HASH Const Setting r0
+sbn MEM_HASH Const Setting ICON_Const
+lbn r0 SILO_HASH Sold Quantity Average
+sbn LED_HASH Sold Setting r0
+sbn MEM_HASH Sold Setting ICON_Sold
+yield
+j start

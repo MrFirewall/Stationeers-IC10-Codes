@@ -1,0 +1,99 @@
+# --- AutoLathe Silo & Vakuum Controller (Unabhängigkeits-Patch) ---
+
+define AutoLatheHash 336213101
+define AutoLatheCoalName HASH("AutoLatheCoal")
+define RecipeCoal 1724793494
+define Stapler -2020231820
+define Silo 1155865682
+define HashSensor -1252983604
+define NameSensor HASH("VakuumSensor")
+define HashVent -785498334       
+define NameVent HASH("VakuumVent")
+define Generator 813146305
+define Batterien -1388288459
+
+# Schwellenwerte
+define MaxSilo 600
+define MinSilo 500
+define MaxCharge 0.99
+define MinCharge 0.50
+
+init:
+sb Stapler Setting 50
+sb Stapler On 1
+sb Silo On 1
+sbn HashVent NameVent Mode 1
+
+# WICHTIG: Maschinen EINMALIG anschalten und Rezept festnageln!
+sbn AutoLatheHash AutoLatheCoalName On 1
+sbn AutoLatheHash AutoLatheCoalName RecipeHash RecipeCoal
+
+yield
+sbn HashVent NameVent PressureExternal 0
+move r15 1
+
+Main:
+yield
+
+# --- 1. Silo-Füllstand ---
+lb r0 Silo Quantity 2
+bge r0 MaxSilo SiloVoll
+blt r0 MinSilo SiloLeer
+j StatusPruefen
+
+SiloVoll:
+move r15 0
+j StatusPruefen
+
+SiloLeer:
+move r15 1
+j StatusPruefen
+
+StatusPruefen:
+# --- 2. Unabhängige Maschinen-Steuerung ---
+# Wenn Silo voll ist (r15=0), überspringe das Aktivieren. 
+# Wir schalten sie NICHT mehr aus, damit das Rezept nicht gelöscht wird!
+beqz r15 GeneratorCheck
+
+# Blindes Dauerfeuer: Alle untätigen Maschinen starten sofort. 
+# Laufende oder blockierte Maschinen ignorieren diesen Befehl einfach!
+sbn AutoLatheHash AutoLatheCoalName Activate 1
+
+GeneratorCheck:
+# --- 3. Generator-Versorgung ---
+lbs r3 Generator 0 Quantity 2
+beqz r3 SiloAuf
+sb Silo Open 0
+j VacuumCheck
+
+SiloAuf:
+sb Silo Open 1
+j VacuumCheck
+
+VacuumCheck:
+# --- 4. Vakuum ---
+lbn r4 HashSensor NameSensor Pressure 3
+lbn r5 HashSensor NameSensor Temperature 3
+bgt r4 0.01 VentAn
+bgt r5 0 VentAn
+sbn HashVent NameVent On 0
+j BatteryCheck 
+
+VentAn:
+sbn HashVent NameVent On 1
+j BatteryCheck
+
+BatteryCheck:
+# --- 5. Batterien ---
+lb r6 Batterien Ratio 2
+bge r6 MaxCharge GenAus
+blt r6 MinCharge GenAn
+j Main
+
+GenAus:
+sb Generator On 0
+j Main
+
+GenAn:
+sb Generator On 1
+j Main

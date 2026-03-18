@@ -1,0 +1,61 @@
+# LArRE Live-Scanner v7.5 (Zustand 0-3 & Debug)
+alias Count r15
+alias Beet r14
+alias o r1
+alias m r2
+alias s r3
+alias State r4
+define Hydro -1841632400
+define Mem -851746783
+
+move sp 0
+push HASH("1")
+push HASH("2")
+push HASH("3")
+push HASH("4")
+push HASH("5")
+push HASH("6")
+push HASH("7")
+push HASH("8")
+push HASH("9")
+push HASH("10")
+#push HASH("11")
+#push HASH("12")
+#push HASH("13")
+#push HASH("14")
+#push HASH("15")
+#push HASH("16")
+#push HASH("17")
+#push HASH("18")
+#push HASH("19")
+#push HASH("20")
+move Count sp
+
+Main:
+yield
+move sp 0
+
+Loop:
+add sp sp 1
+bgt sp Count Main
+peek Beet
+
+# Echtzeit-Status auslesen
+lbns o Hydro Beet 0 Occupied 0
+max o o 0
+lbns m Hydro Beet 0 Mature 0
+max m m 0
+lbns s Hydro Beet 0 Seeding 0
+max s s 0
+
+# Neue Addition: 1 (Grundwert) + Mature + Seeding
+add State m s
+add State State 1
+mul State State o # Wenn leer (0), wird alles zu 0
+
+# Status ins Memory schreiben (0, 1, 2 oder 3)
+sbn Mem Beet Setting State
+
+SkipDB:
+
+j Loop

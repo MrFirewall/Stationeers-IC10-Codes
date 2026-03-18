@@ -1,0 +1,125 @@
+define SORTER_TYPE 873418029
+define STAPLER_TYPE -2020231820
+define OPCODE 1
+
+sb SORTER_TYPE On 1
+sb STAPLER_TYPE On 1
+
+# 1. IceOxit
+lbn r0 SORTER_TYPE HASH("SorterIceOxit") ReferenceId Maximum
+sll r1 -1805394113 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 2. IceFluechtigeStoffe
+lbn r0 SORTER_TYPE HASH("SorterIceFluechtigeStoffe") ReferenceId Maximum
+sll r1 1253102035 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 3. IceNitrit
+lbn r0 SORTER_TYPE HASH("SorterIceNitrit") ReferenceId Maximum
+sll r1 -1499471529 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 4. EISEN
+lbn r0 SORTER_TYPE HASH("SorterIron") ReferenceId Maximum
+sll r1 1758427767 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 5. KUPFER
+lbn r0 SORTER_TYPE HASH("SorterCopper") ReferenceId Maximum
+sll r1 -707307845 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 6. GOLD
+lbn r0 SORTER_TYPE HASH("SorterGold") ReferenceId Maximum
+sll r1 -1348105509 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 7. SILIZIUM
+lbn r0 SORTER_TYPE HASH("SorterSilicon") ReferenceId Maximum
+sll r1 1103972403 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 8. KOHLE
+lbn r0 SORTER_TYPE HASH("SorterCoal") ReferenceId Maximum
+sll r1 1724793494 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 9. BLEI
+lbn r0 SORTER_TYPE HASH("SorterLead") ReferenceId Maximum
+sll r1 -190236170 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 10. NICKEL
+lbn r0 SORTER_TYPE HASH("SorterNickel") ReferenceId Maximum
+sll r1 1830218956 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 11. SILBER
+lbn r0 SORTER_TYPE HASH("SorterSilver") ReferenceId Maximum
+sll r1 -916518678 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 12. KOBALT
+lbn r0 SORTER_TYPE HASH("SorterCobalt") ReferenceId Maximum
+sll r1 -983091249 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 13. URAN
+lbn r0 SORTER_TYPE HASH("SorterUranium") ReferenceId Maximum
+sll r1 -1516581844 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 14. IceWater
+lbn r0 SORTER_TYPE HASH("SorterIceWater") ReferenceId Maximum
+sll r1 1217489948 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 15. Steel
+lbn r0 SORTER_TYPE HASH("SorterSteel") ReferenceId Maximum
+sll r1 -654790771 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 16. Elec
+lbn r0 SORTER_TYPE HASH("SorterElec") ReferenceId Maximum
+sll r1 502280180 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 17. Inv
+lbn r0 SORTER_TYPE HASH("SorterInv") ReferenceId Maximum
+sll r1 -297990285 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 18. Const
+lbn r0 SORTER_TYPE HASH("SorterConst") ReferenceId Maximum
+sll r1 1058547521 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+# 19. Sold
+lbn r0 SORTER_TYPE HASH("SorterSold") ReferenceId Maximum
+sll r1 -82508479 8
+or r1 r1 OPCODE
+put r0 0 r1
+s r0 Mode 1
+
+done:
+yield
+j done

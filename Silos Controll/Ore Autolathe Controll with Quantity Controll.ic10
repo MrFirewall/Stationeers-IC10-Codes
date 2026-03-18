@@ -1,0 +1,125 @@
+alias MAX_AMOUNT r15
+alias MAX_AMOUNT_STOP r16
+move MAX_AMOUNT 600
+move MAX_AMOUNT_STOP 590
+define AL_TYPE 336213101
+define ST_TYPE 1585641623
+define SILO_TYPE 1155865682
+define IceOxit_HASH -1805394113
+define IceOxit HASH("IceOxit")
+define IceFluechtigeStoffe_HASH 1253102035
+define IcePolant HASH("IceFluechtigeStoffe")
+define IceNitrit_HASH -1499471529
+define IceNitrit HASH("IceNitrit")
+define Iron_HASH 1758427767
+define Iron HASH("Iron")
+define Copper_HASH -707307845
+define Copper HASH("Copper")
+define Gold_HASH -1348105509
+define Gold HASH("Gold")
+define Silicon_HASH 1103972403
+define Silicon HASH("Silicon")
+define Coal_HASH 1724793494
+define Coal HASH("Coal")
+define Lead_HASH -190236170
+define Lead HASH("Lead")
+define Nickel_HASH 1830218956
+define Nickel HASH("Nickel")
+define Silver_HASH -916518678
+define Silver HASH("Silver")
+define Cobalt_HASH -983091249
+define Cobalt HASH("Cobalt")
+define Uranium_HASH -1516581844
+define Uranium HASH("Uranium")
+define IceWater_HASH 1217489948
+define IceWater HASH("IceWater")
+sbn AL_TYPE IceOxit RecipeHash IceOxit_HASH
+sbn AL_TYPE IcePolant RecipeHash IceFluechtigeStoffe_HASH
+sbn AL_TYPE IceNitrit RecipeHash IceNitrit_HASH
+sbn AL_TYPE Iron RecipeHash Iron_HASH
+sbn AL_TYPE Copper RecipeHash Copper_HASH
+sbn AL_TYPE Gold RecipeHash Gold_HASH
+sbn AL_TYPE Silicon RecipeHash Silicon_HASH
+sbn AL_TYPE Coal RecipeHash Coal_HASH
+sbn AL_TYPE Lead RecipeHash Lead_HASH
+sbn AL_TYPE Nickel RecipeHash Nickel_HASH
+sbn AL_TYPE Silver RecipeHash Silver_HASH
+sbn AL_TYPE Cobalt RecipeHash Cobalt_HASH
+sbn AL_TYPE Uranium RecipeHash Uranium_HASH
+sbn AL_TYPE IceWater RecipeHash IceWater_HASH
+sb AL_TYPE Lock 1
+sb ST_TYPE On 1
+sb ST_TYPE Setting 200
+main:
+yield 
+lbn r0 SILO_TYPE IceOxit Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE IceOxit On r1
+sbn AL_TYPE IceOxit Activate r2
+lbn r0 SILO_TYPE IcePolant Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE IcePolant On r1
+sbn AL_TYPE IcePolant Activate r2
+lbn r0 SILO_TYPE IceNitrit Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE IceNitrit On r1
+sbn AL_TYPE IceNitrit Activate r2
+lbn r0 SILO_TYPE Iron Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Iron On r1
+sbn AL_TYPE Iron Activate r2
+lbn r0 SILO_TYPE Copper Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Copper On r1
+sbn AL_TYPE Copper Activate r2
+lbn r0 SILO_TYPE Gold Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Gold On r1
+sbn AL_TYPE Gold Activate r2
+lbn r0 SILO_TYPE Silicon Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Silicon On r1
+sbn AL_TYPE Silicon Activate r2
+lbn r0 SILO_TYPE Coal Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Coal On r1
+sbn AL_TYPE Coal Activate r2
+lbn r0 SILO_TYPE Lead Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Lead On r1
+sbn AL_TYPE Lead Activate r2
+lbn r0 SILO_TYPE Nickel Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Nickel On r1
+sbn AL_TYPE Nickel Activate r2
+lbn r0 SILO_TYPE Silver Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Silver On r1
+sbn AL_TYPE Silver Activate r2
+lbn r0 SILO_TYPE Cobalt Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Cobalt On r1
+sbn AL_TYPE Cobalt Activate r2
+lbn r0 SILO_TYPE Uranium Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE Uranium On r1
+sbn AL_TYPE Uranium Activate r2
+lbn r0 SILO_TYPE IceWater Quantity Sum
+slt r1 r0 MAX_AMOUNT
+slt r2 r0 MAX_AMOUNT_STOP
+sbn AL_TYPE IceWater On r1
+sbn AL_TYPE IceWater Activate r2
+j main
