@@ -1,0 +1,3 @@
+lb r0 322782515 Activate 3
+seqz r0 0
+sb  555215790 On r0
