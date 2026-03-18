@@ -107,7 +107,7 @@ pop r10
 Dispense:
 sbn 1155865682 r10 Open 1
 yield
-sb 1155865682 Open 0
+sbn 1155865682 r10 Open 0
 yield
 yield
 yield 
