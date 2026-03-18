@@ -1,0 +1,118 @@
+# --- KONFIGURATION ---
+define MAX_PRESS 50000
+define MAX_TEMP 303.15
+define LATHE_OFF_P 35000
+define LATHE_ON_P 25000
+# --- REZEPTE ---
+define RECIPE_O2 -1150448260 # Pure Ice Oxygen
+define RECIPE_Vol -633723719 # Pure Ice Volatile
+# --- IDs ---
+define ID_Tank  435685051
+define ID_LED   -1949054743
+define ID_Lathe 336213101
+define ID_BackPressure -1149857558
+# --- HASHS ---
+define N_TankO2  HASH("TankO2")
+define N_LEDO2   HASH("LEDO2")
+define N_AutolatheO2 HASH("AutolatheO2")
+define N_TankN2  HASH("TankN2")
+define N_LEDN2   HASH("LEDN2")
+define N_TankCO2 HASH("TankCO2")
+define N_LEDCO2  HASH("LEDCO2")
+define N_TankVol HASH("TankVol")
+define N_LEDVol  HASH("LEDVol")
+define N_AutolatheVol HASH("AutolatheVol")
+define N_TankPol HASH("TankPol")
+define N_LEDPol  HASH("LEDPol")
+define N_TankN2O HASH("TankN2O")
+define N_LEDN2O  HASH("LEDN2O")
+# --- REGISTER ---
+alias CurrentP r0
+alias CurrentT r1
+alias Panic r2
+alias TempPanic r3
+alias LedColor r4
+alias L_On r5
+alias L_Keep r6
+# --- INTERNER SPEICHER FÜR AUTOLATHE-ZUSTAND ---
+alias Mem_LatheO2 r7
+alias Mem_LatheVol r8
+Init:
+sb ID_LED Mode 14
+sbn ID_LED N_LEDO2 On 1
+sbn ID_LED N_LEDN2 On 1
+sbn ID_LED N_LEDCO2 On 1
+sbn ID_LED N_LEDVol On 1
+sbn ID_LED N_LEDPol On 1
+sbn ID_LED N_LEDN2O On 1
+sb ID_BackPressure On 1
+# Zustand beim Booten definieren
+move Mem_LatheO2 0
+move Mem_LatheVol 0
+Loop:
+yield # Gibt CPU an das Spiel ab, sehr wichtig für die Performance
+# --- 1. SAUERSTOFF ---
+lbn CurrentP ID_Tank N_TankO2 Pressure Maximum
+sgt Panic CurrentP MAX_PRESS
+sbn ID_LED N_LEDO2 Setting CurrentP
+mul LedColor Panic 2
+add LedColor LedColor 2
+sbn ID_LED N_LEDO2 Color LedColor
+# Autolathe Hysterese (Sauerstoff) - Strom, Rezept & Produktion
+slt L_On CurrentP LATHE_ON_P
+sle L_Keep CurrentP LATHE_OFF_P
+and Mem_LatheO2 Mem_LatheO2 L_Keep
+or Mem_LatheO2 Mem_LatheO2 L_On
+sbn ID_Lathe N_AutolatheO2 On Mem_LatheO2
+sbn ID_Lathe N_AutolatheO2 RecipeHash RECIPE_O2
+sbn ID_Lathe N_AutolatheO2 Activate Mem_LatheO2
+# --- 2. STICKSTOFF ---
+lbn CurrentP ID_Tank N_TankN2 Pressure Maximum
+sgt Panic CurrentP MAX_PRESS
+sbn ID_LED N_LEDN2 Setting CurrentP
+mul LedColor Panic 2
+add LedColor LedColor 2
+sbn ID_LED N_LEDN2 Color LedColor
+# --- 3. KOHLENDIOXID ---
+lbn CurrentP ID_Tank N_TankCO2 Pressure Maximum
+sgt Panic CurrentP MAX_PRESS
+sbn ID_LED N_LEDCO2 Setting CurrentP
+mul LedColor Panic 2
+add LedColor LedColor 2
+sbn ID_LED N_LEDCO2 Color LedColor
+# --- 4. FLÜCHTIGE STOFFE (Mit Temp) ---
+lbn CurrentP ID_Tank N_TankVol Pressure Maximum
+lbn CurrentT ID_Tank N_TankVol Temperature Maximum
+sgt Panic CurrentP MAX_PRESS
+sgt TempPanic CurrentT MAX_TEMP
+or Panic Panic TempPanic
+sbn ID_LED N_LEDVol Setting CurrentP
+mul LedColor Panic 2
+add LedColor LedColor 2
+sbn ID_LED N_LEDVol Color LedColor
+# Autolathe Hysterese (Flüchtige Stoffe) - Strom, Rezept & Produktion
+slt L_On CurrentP LATHE_ON_P
+sle L_Keep CurrentP LATHE_OFF_P
+and Mem_LatheVol Mem_LatheVol L_Keep
+or Mem_LatheVol Mem_LatheVol L_On
+sbn ID_Lathe N_AutolatheVol On Mem_LatheVol
+sbn ID_Lathe N_AutolatheVol RecipeHash RECIPE_Vol
+sbn ID_Lathe N_AutolatheVol Activate Mem_LatheVol
+# --- 5. SCHADSTOFFE ---
+lbn CurrentP ID_Tank N_TankPol Pressure Maximum
+sgt Panic CurrentP MAX_PRESS
+sbn ID_LED N_LEDPol Setting CurrentP
+mul LedColor Panic 2
+add LedColor LedColor 2
+sbn ID_LED N_LEDPol Color LedColor
+# --- 6. N2O (Mit Temp) ---
+lbn CurrentP ID_Tank N_TankN2O Pressure Maximum
+lbn CurrentT ID_Tank N_TankN2O Temperature Maximum
+sgt Panic CurrentP MAX_PRESS
+sgt TempPanic CurrentT MAX_TEMP
+or Panic Panic TempPanic
+sbn ID_LED N_LEDN2O Setting CurrentP
+mul LedColor Panic 2
+add LedColor LedColor 2
+sbn ID_LED N_LEDN2O Color LedColor
+j Loop

@@ -1,0 +1,125 @@
+# LArRE Arm-Controller v8.1 (Dumb Dump - Alles in den Import)
+alias Arm d0
+alias Count r15
+alias Beet r14
+alias Stat r13
+define StDock 0
+define StSamen -1
+define StOut -2
+define StDung -3
+move sp 0
+push HASH("1")
+push HASH("2")
+push HASH("3")
+push HASH("4")
+push HASH("5")
+push HASH("6")
+push HASH("7")
+push HASH("8")
+push HASH("9")
+push HASH("10")
+#push HASH("11")
+#push HASH("12")
+#push HASH("13")
+#push HASH("14")
+#push HASH("15")
+#push HASH("16")
+#push HASH("17")
+#push HASH("18")
+#push HASH("19")
+#push HASH("20")
+move Count sp
+Main:
+yield
+ls r0 Arm 0 Occupied
+beqz r0 InitLoop
+jal Abwurf
+InitLoop:
+s Arm Setting StDock
+jal WIdle
+sleep 1
+move sp 0
+Loop:
+add sp sp 1
+bgt sp Count Main
+peek Beet
+move Stat sp
+lbn r1 -851746783 Beet Setting 3
+beqal r1 0 DoPlant
+beqal r1 3 DoHarvest
+j Loop
+DoPlant:
+move r9 ra
+lbns r6 1957571043 HASH("Samen") 0 Occupied 3
+max r6 r6 0
+lbns r0 1957571043 HASH("Dung") 0 Occupied 3
+max r0 r0 0
+lbns r7 -1841632400 Beet 1 Occupied 3
+max r7 r7 0
+seq r7 r7 0
+and r7 r7 r0
+or r0 r6 r7
+beqz r0 WIdle
+beqz r6 GrabD
+s Arm Setting StSamen
+jal WIdle
+s Arm Activate 1
+jal WIdle
+GrabD:
+beqz r7 GoTray
+s Arm Setting StDung
+jal WIdle
+s Arm Activate 1
+jal WIdle
+GoTray:
+s Arm Setting Stat
+jal WIdle
+beqz r7 PlantS
+s Arm Activate 1
+jal WIdle
+PlantS:
+beqz r6 EndPlant
+s Arm Activate 1
+jal WIdle
+EndPlant:
+j r9
+DoHarvest:
+move r9 ra
+s Arm Setting Stat
+jal WIdle
+ErnteLoop:
+s Arm Activate 1
+jal WIdle
+s Arm Activate 1
+jal WIdle
+ls r0 Arm 0 Occupied
+beqz r0 ECheck
+jal Abwurf
+s Arm Setting Stat
+jal WIdle
+ECheck:
+lbns r1 -1841632400 Beet 0 Mature 3
+lbns r2 -1841632400 Beet 0 Seeding 3
+max r1 r1 0
+max r2 r2 0
+or r0 r1 r2
+bnez r0 ErnteLoop
+j r9
+Abwurf:
+move r8 ra
+A_Loop:
+ls r0 Arm 0 Occupied
+beqz r0 A_End
+s Arm Setting StOut
+jal WIdle
+s Arm Activate 1
+jal WIdle
+sb -850484480 Open 0
+j A_Loop
+A_End:
+j r8
+WIdle:
+yield
+l r10 Arm Idle
+beqz r10 WIdle
+j ra

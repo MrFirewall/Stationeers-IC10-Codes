@@ -1,0 +1,137 @@
+# Stationeers Rocket Auto-Umbilical & Status Script
+# Mit CurrentCode Abfrage und Automatik-Abkopplung
+
+# --- Register ---
+alias rColor    r0
+alias rTemp     r1
+alias rTick     r2
+alias rBlink    r3
+alias rBatFull  r4
+alias rGasFull  r5
+alias rCode     r6
+
+# --- Prefab Hashes ---
+define H_UmbiGas   -1814939203
+define H_UmbiPower  1529453938
+define H_LED        1944485013
+define H_Bat       -1125305264
+define H_GasTank   -1093860567
+define H_Avionics   808389066
+
+# --- Name Hashes ---
+define N_UmbiPower HASH("RB1_Umbilical_Power")
+define N_UmbiGas   HASH("RB1_Umbilical_Gas")
+define N_PowerLED  HASH("RB1_PowerLED")
+define N_GasLED    HASH("RB1_GasLED")
+define N_Bat1      HASH("R1_Bat_1")
+define N_GasTank   HASH("R1_GasTank")
+define N_Avionics  HASH("R1_Avionics")
+
+# --- Konstanten ---
+define COLOR_RED   4
+define COLOR_GREEN 2
+define COLOR_BLUE  1   # Neu: Farbe für Rakete im All
+define COLOR_OFF   5
+define FULL_BAT    1   
+define FULL_GAS    30000  
+define CODE_PAD    4016   # Positionscode deines Launchpads
+
+LOOP:
+    yield
+    
+    # --- Blinker-Logik ---
+    add rTick rTick 1
+    mod rTick rTick 4
+    sgt rBlink rTick 1
+
+    # ==========================================
+    # RAKETEN-POSITION PRÜFEN
+    # ==========================================
+    # Lese CurrentCode aus der Avionik. (Mode 3 = Maximum)
+    lbn rCode H_Avionics N_Avionics CurrentCode 3
+    s d0 Setting rCode
+    # Wenn Code == 4016 -> Rakete ist da, springe zur Lade-Logik
+    beq rCode CODE_PAD ROCKET_ON_PAD
+    
+    # --- ROCKET IS AWAY (Rakete im All oder nicht lesbar) ---
+    # Reset des "Voll"-Speichers
+    move rBatFull 0
+    move rGasFull 0
+    
+    # Umbilicals ausfahren und LEDs auf Blau setzen (Wartemodus)
+    sbn H_UmbiPower N_UmbiPower Open 1
+    sbn H_LED N_PowerLED Color COLOR_BLUE
+    sbn H_LED N_PowerLED On 1
+    
+    sbn H_UmbiGas N_UmbiGas Open 1
+    sbn H_LED N_GasLED Color COLOR_BLUE
+    sbn H_LED N_GasLED On 1
+    
+    j LOOP
+
+ROCKET_ON_PAD:
+    # ==========================================
+    # SEKTION: POWER UMBILICAL & BATTERIE
+    # ==========================================
+    lbn rTemp H_UmbiPower N_UmbiPower On 3
+    beq rTemp 0 POWER_OFF
+    
+    # Prüfen, ob im Gedächtnis schon "Voll" markiert ist
+    beq rBatFull 1 POWER_IS_FULL
+    
+    # --- LADEVORGANG ---
+    sbn H_UmbiPower N_UmbiPower Open 1
+    sbn H_LED N_PowerLED Color COLOR_RED
+    sbn H_LED N_PowerLED On 1
+    
+    # Batterie auslesen (lbn spezifisch auf R1_Bat_1, Mode 1 = Minimum)
+    lb rTemp H_Bat Ratio 1
+    sge rBatFull rTemp FULL_BAT
+    j CHECK_SPRIT
+
+POWER_IS_FULL:
+    # --- VOLL & ABGEKOPPELT ---
+    sbn H_UmbiPower N_UmbiPower Open 0
+    sbn H_LED N_PowerLED Color COLOR_GREEN
+    sbn H_LED N_PowerLED On rBlink
+    j CHECK_SPRIT
+
+POWER_OFF:
+    move rBatFull 0
+    sbn H_UmbiPower N_UmbiPower Open 0
+    sbn H_LED N_PowerLED Color COLOR_OFF
+    sbn H_LED N_PowerLED On 0
+
+CHECK_SPRIT:
+    # ==========================================
+    # SEKTION: SPRIT UMBILICAL & TANK
+    # ==========================================
+    lbn rTemp H_UmbiGas N_UmbiGas On 3
+    beq rTemp 0 SPRIT_OFF
+    
+    # Prüfen, ob im Gedächtnis schon "Voll" markiert ist
+    beq rGasFull 1 SPRIT_IS_FULL
+    
+    # --- TANKVORGANG ---
+    sbn H_UmbiGas N_UmbiGas Open 1
+    sbn H_LED N_GasLED Color COLOR_RED
+    sbn H_LED N_GasLED On 1
+    
+    # Tank auslesen (lbn spezifisch auf R1_GasTank, Mode 1 = Minimum)
+    lb rTemp H_GasTank Pressure 1
+    sge rGasFull rTemp FULL_GAS
+    j LOOP
+
+SPRIT_IS_FULL:
+    # --- VOLL & ABGEKOPPELT ---
+    sbn H_UmbiGas N_UmbiGas Open 0
+    sbn H_LED N_GasLED Color COLOR_GREEN
+    sbn H_LED N_GasLED On rBlink
+    j LOOP
+
+SPRIT_OFF:
+    move rGasFull 0
+    sbn H_UmbiGas N_UmbiGas Open 0
+    sbn H_LED N_GasLED Color COLOR_OFF
+    sbn H_LED N_GasLED On 0
+    j LOOP

@@ -1,4 +1,4 @@
-define FRUITE -1922066841 #Hash der Samentüten
+define FRUITE 1924673028 #Hash der Samentten
 define SORTERTYPE 873418029 #Hash des Sortierers
 define STAPLERTYPE -2020231820 #Hash
 define GrowLightHash -1758710260 #Hash der Growlichter
@@ -6,11 +6,11 @@ define GrowLightHash -1758710260 #Hash der Growlichter
 define OPCODE 1
 
 #Namendefinierung
-define SORTERNAME HASH("TomatenLogicSorter")
-define GrowLight HASH("TomatenGrowLight")
+define SORTERNAME HASH("SojaLogicSorter")
+define GrowLight HASH("SojaGrowLight")
 #Timereinstellung
 define Tag 600
-define Nacht 200
+define Nacht 300
 alias Timer r15
 
 sb SORTERTYPE On 1
