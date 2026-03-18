@@ -1,0 +1,102 @@
+# --- KONFIGURATION ---
+define MIN_PRES 0.0001
+define DELAY_TIME 30
+define MAX_TEMP 323.15  # 50 Grad (Sicherheitsabschaltung bei reiner Hitze)
+# --- GERÄTE-TYPEN (Hashes) ---
+define TypeFilter -348054045    # StructureFiltration
+define TypeTurbo 1310794736     # StructureTurboVolumePump
+define TypeHeater -419758574    # StructurePipeHeater
+# --- ALIASES ---
+alias Sensor d0
+alias Pres r0
+alias Temp r1
+alias Run r2
+alias TargetTemp r3
+alias HeaterState r4
+alias Timer r5
+alias TempRatio r6
+alias FilterState r7
+Start:
+    yield
+    l Pres Sensor Pressure
+    l Temp Sensor Temperature
+    bgt Pres MIN_PRES ResetTimer
+    sub Timer Timer 1
+    bgt Timer 0 CheckSafety
+    move Run 0
+    move Timer 0
+    j CheckSafety
+ResetTimer:
+    move Timer DELAY_TIME
+    move Run 1
+CheckSafety:
+    move TargetTemp 75
+    l TempRatio Sensor RatioCarbonDioxide
+    sgtz TempRatio TempRatio
+    mul TempRatio TempRatio 243.15
+    max TargetTemp TargetTemp TempRatio
+    l TempRatio Sensor RatioNitrousOxide
+    sgtz TempRatio TempRatio
+    mul TempRatio TempRatio 203.15
+    max TargetTemp TargetTemp TempRatio
+    l TempRatio Sensor RatioPollutant
+    sgtz TempRatio TempRatio
+    mul TempRatio TempRatio 143.15
+    max TargetTemp TargetTemp TempRatio
+    l TempRatio Sensor RatioWater
+    sgtz TempRatio TempRatio
+    mul TempRatio TempRatio 278.15
+    max TargetTemp TargetTemp TempRatio
+    move HeaterState 0
+    blt Temp TargetTemp HeatUp
+    j CheckHot
+    df
+HeatUp:
+    # Nur Heizen, wenn auch Druck/Gas vorhanden ist
+    bgt Pres MIN_PRES SetHeater
+    j CheckHot
+SetHeater:
+    move HeaterState 1
+CheckHot:
+    bgt Temp MAX_TEMP TooHot
+    j Switch
+TooHot:
+    move Run 0          # Alles AUS bei krasser Überhitzung
+    move HeaterState 0  # Heizung AUS
+    j Switch
+Switch:
+    # Heizung & Pumpen schalten
+    sbn TypeHeater HASH("Heater") On HeaterState
+    sbn TypeTurbo HASH("Volumenpumpe0") On Run
+    sbn TypeTurbo HASH("Volumenpumpe1_0") On Run
+    sbn TypeTurbo HASH("Volumenpumpe2_0") On Run
+    sbn TypeTurbo HASH("Volumenpumpe3_0") On Run
+    sbn TypeTurbo HASH("Volumenpumpe4_0") On Run
+    sbn TypeTurbo HASH("Volumenpumpe5_0") On Run
+    sbn TypeTurbo HASH("Volumenpumpe6_0") On Run
+    sb TypeTurbo Setting 100
+    l TempRatio Sensor RatioOxygen
+    sgtz FilterState TempRatio
+    and FilterState FilterState Run
+    sbn TypeFilter HASH("SauerstoffFiltration") On FilterState
+    l TempRatio Sensor RatioCarbonDioxide
+    sgtz FilterState TempRatio
+    and FilterState FilterState Run
+    sbn TypeFilter HASH("KohlendioxidFiltration") On FilterState
+    l TempRatio Sensor RatioNitrogen
+    sgtz FilterState TempRatio
+    and FilterState FilterState Run
+    sbn TypeFilter HASH("StickstoffFiltration") On FilterState
+    l TempRatio Sensor RatioPollutant
+    sgtz FilterState TempRatio
+    and FilterState FilterState Run
+    sbn TypeFilter HASH("SchadstoffeFiltration") On FilterState
+    l TempRatio Sensor RatioVolatiles
+    sgtz FilterState TempRatio
+    and FilterState FilterState Run
+    sbn TypeFilter HASH("FluechtigeStoffeFiltration") On FilterState
+    l TempRatio Sensor RatioNitrousOxide
+    sgtz FilterState TempRatio
+    and FilterState FilterState Run
+    sbn TypeFilter HASH("DickstoffmonoxidFiltration") On FilterState
+    j Start

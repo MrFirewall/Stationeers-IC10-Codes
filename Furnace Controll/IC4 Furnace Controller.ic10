@@ -1,0 +1,128 @@
+alias Furn d0
+alias Mixer d1
+alias FuelPump d2
+alias ColdPump d3
+define AnalyzerO2 HASH("AnalyzerO2")
+define HeizungO2 HASH("HeizungO2")
+define AnalyzerVOL HASH("AnalyzerVOL")
+define HeizungVOL HASH("HeizungVOL")
+Loop:
+yield
+# Vollautomatische Heizungs-Kontrolle
+lbn r15 435685051 AnalyzerO2 Temperature 0
+slt r15 r15 293.15
+sbn -419758574 HeizungO2 On r15
+lbn r15 435685051 AnalyzerVOL Temperature 0
+slt r15 r15 293.15
+sbn -419758574 HeizungVOL On r15
+lbn r0 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
+beq r0 0 ShutDown
+beq r0 1 Run
+j Loop
+ShutDown:
+s Mixer On 0
+s FuelPump On 0
+s FuelPump Setting 0
+s ColdPump On 0      
+s ColdPump Setting 0 
+s Furn Activate 0
+s Furn SettingInput 100
+# Temperatur-Schutz für die Abgasrohre
+l r15 Furn Temperature
+slt r15 r15 1800
+mul r15 r15 100
+s Furn SettingOutput r15
+# Automatischer Not-Auswurf
+l r15 Furn Reagents
+bgt r15 0 Flush
+s Furn ClearMemory 1
+j Loop
+Flush:
+s Furn Open 1
+sleep 2
+s Furn Open 0
+j ShutDown
+Run:
+lbn r2 HASH("StructureLogicMemory") HASH("MemMinT") Setting 3
+lbn r3 HASH("StructureLogicMemory") HASH("MemMaxT") Setting 3
+lbn r4 HASH("StructureLogicMemory") HASH("MemMinP") Setting 3
+lbn r5 HASH("StructureLogicMemory") HASH("MemMaxP") Setting 3
+lbn r6 HASH("StructureLogicMemory") HASH("MemPump") Setting 3
+lbn r13 HASH("StructureLogicMemory") HASH("MemHash") Setting 3
+lbn r1 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
+lbn r0 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+max r0 r0 1
+move r9 50 
+ble r1 7 CalcMass
+move r9 100 
+beq r1 9 CalcMass
+beq r1 10 CalcMass
+beq r1 11 CalcMass
+beq r1 12 CalcMass
+move r9 200
+CalcMass:
+mul r1 r9 r0
+l r7 Furn Temperature
+l r8 Furn Pressure
+l r0 Furn RecipeHash
+s db Setting r0
+s Furn Open 0
+s Furn SettingInput 100
+s Furn Activate 1
+# --- Output Ventil (Intelligentes Entlüften) ---
+sge r9 r8 r5 # Bedingung 1: Akute Explosionsgefahr (Press >= MaxPress)
+sge r10 r7 r3 
+sge r11 r8 r4 
+and r10 r10 r11 # Bedingung 2: Es ist zu heiß, ABER wir haben genug Druck zum Abblasen!
+or r11 r9 r10
+mul r11 r11 r6
+s Furn SettingOutput r11
+# --- 1. FuelPump (STRIKT NUR FÜRS HEIZEN!) ---
+slt r15 r7 r2 # Läuft AUSSCHLIESSLICH, wenn Temp < MinTemp
+sub r9 r2 r7
+max r9 r9 2
+min r9 r9 100
+mul r9 r9 r15
+s FuelPump Setting r9
+s FuelPump On r15
+s Mixer On r15
+# --- 2. ColdPump (Smarter Kühler & Druck-Booster) ---
+sge r10 r7 r3 # Bedingung 1: Zu heiß (Kühlen)
+sge r11 r7 r2 
+slt r12 r8 r4 
+and r11 r11 r12 # Bedingung 2: Temperatur passt, aber Druck fehlt (Booster!)
+or r15 r10 r11 # Kaltgas AN, wenn Bedingung 1 ODER 2 wahr ist
+slt r12 r8 r5 # Ultimativer Explosionsschutz: Nur wenn Platz ist (Press < MaxPress)
+and r15 r15 r12 
+# Dynamische Menge berechnen (MaxPress - Aktueller Druck / Skalierung)
+sub r9 r5 r8
+div r9 r9 100 
+max r9 r9 5  # Mindestens 2 Liter (sanftes Pumpen)
+min r9 r9 100 # Maximal 100 Liter (für schnellen Druckaufbau)
+mul r9 r9 r15
+s ColdPump Setting r9
+s ColdPump On r15
+sge r9 r8 r4
+sle r10 r8 r5
+sge r11 r7 r2
+sle r12 r7 r3
+and r14 r9 r10
+and r14 r14 r11
+and r14 r14 r12
+l r15 Furn RecipeHash
+seq r15 r15 r13
+and r14 r14 r15
+l r15 Furn Reagents
+sge r15 r15 r1 
+and r14 r14 r15
+ls r15 Furn 0 Occupied
+seq r15 r15 0
+and r14 r14 r15
+beq r14 1 ExecuteSmelt
+j Loop
+ExecuteSmelt:
+s Furn Open 1
+sleep 2 
+s Furn Open 0
+sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
+j ShutDown

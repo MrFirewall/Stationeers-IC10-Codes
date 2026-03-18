@@ -1,0 +1,106 @@
+alias LED d0
+Loop:
+yield
+lbn r15 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
+lbn r16 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+max r16 r16 1
+move r1 0
+move r2 0
+move r3 0
+move r4 1
+move r5 1
+move r6 1
+beq r15 0 Off
+move r1 HASH("Iron")
+beq r15 1 ChkSilo
+move r1 HASH("Gold")
+beq r15 2 ChkSilo
+move r1 HASH("Copper")
+beq r15 3 ChkSilo
+move r1 HASH("Nickel")
+beq r15 4 ChkSilo
+move r1 HASH("Silver")
+beq r15 5 ChkSilo
+move r1 HASH("Lead")
+beq r15 6 ChkSilo
+move r1 HASH("Silicon")
+beq r15 7 ChkSilo
+move r1 HASH("Iron")
+move r4 3
+move r2 HASH("Coal")
+beq r15 8 ChkSilo
+move r1 HASH("Gold")
+move r2 HASH("Silver")
+beq r15 9 ChkSilo
+move r1 HASH("Iron")
+move r2 HASH("Nickel")
+beq r15 10 ChkSilo
+move r1 HASH("IceWater")
+move r2 HASH("Copper")
+move r3 HASH("Nickel")
+beq r15 11 ChkSilo
+move r1 HASH("Lead")
+move r2 HASH("Iron")
+move r3 HASH("IceWater")
+move r6 2
+beq r15 12 ChkSilo
+move r1 HASH("Cobalt")
+move r2 HASH("Copper")
+move r3 HASH("Steel")
+move r6 2
+beq r15 13 ChkSilo
+move r1 HASH("Cobalt")
+move r2 HASH("Nickel")
+move r3 HASH("Silver")
+move r6 2
+beq r15 14 ChkSilo
+move r1 HASH("Nickel")
+move r2 HASH("Steel")
+move r3 HASH("Gold")
+move r6 2
+beq r15 15 ChkSilo
+move r1 HASH("Silver")
+move r2 HASH("Cobalt")
+move r3 HASH("Silicon")
+move r6 2
+beq r15 16 ChkSilo
+move r1 HASH("Nickel")
+move r4 2
+move r2 HASH("Silver")
+move r5 2
+move r3 HASH("Lead")
+ChkSilo:
+move r7 0 # r7 speichert den Fehler-Hash. 0 = Alles OK!
+beq r1 0 Update
+mul r10 r4 r16
+lbn r11 1155865682 r1 Quantity 1 
+blt r11 r10 Err1
+beq r2 0 Update
+mul r10 r5 r16
+lbn r11 1155865682 r2 Quantity 1
+blt r11 r10 Err2
+beq r3 0 Update
+mul r10 r6 r16
+lbn r11 1155865682 r3 Quantity 1
+bge r11 r10 Update
+move r7 r3
+j LoadHash
+Err1:
+move r7 r1
+j LoadHash
+Err2:
+move r7 r2
+LoadHash:
+lbn r7 HASH("StructureLogicMemory") r7 Setting 3
+Update:
+sne r14 r7 0 # r14 wird 1, wenn r7 NICHT 0 ist (Fehler)
+mul r14 r14 2
+add r14 r14 2 # 4 = Rot, 2 = Grün
+s LED Color r14
+s LED On 1
+s db Setting r7 # Zeigt das echte Bild an!
+j Loop
+Off:
+s LED On 0
+s db Setting 0
+j Loop

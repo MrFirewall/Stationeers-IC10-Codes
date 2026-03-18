@@ -1,0 +1,127 @@
+Loop:
+yield
+lbn r0 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
+l r6 d5 Setting
+sbn HASH("StructureLogicMemory") HASH("MemQty") Setting r6
+l r4 d3 Pressure
+l r5 d3 Temperature
+l r7 d3 Reagents
+s d4 Setting r6
+
+# --- REPARIERTER SOLL-WERT BLOCK ---
+move r8 0
+beq r0 0 WriteDisp
+move r8 50
+ble r0 7 WriteDisp
+move r8 100
+beq r0 9 WriteDisp
+beq r0 10 WriteDisp
+beq r0 11 WriteDisp
+beq r0 12 WriteDisp
+move r8 200 # <-- Fängt jetzt sauber 8 (Stahl) UND 13 bis 17 ab!
+
+WriteDisp:
+mul r8 r8 r6 
+sbn -815193061 HASH("PLED") Setting r4
+sbn -815193061 HASH("PLED") Mode 14
+sbn -815193061 HASH("TLED") Setting r5
+sbn -815193061 HASH("TLED") Mode 3
+sbn -815193061 HASH("IstReagents") Setting r7  
+sbn -815193061 HASH("SollReagents") Setting r8 
+
+lbn r15 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
+beq r15 1 LockedUI
+
+l r1 d0 Setting
+beq r1 1 Prev
+l r1 d1 Setting
+beq r1 1 Next
+j SwitchMap
+
+Prev:
+sub r0 r0 1
+bltz r0 WrapMax
+j Save
+WrapMax:
+move r0 17
+j Save
+
+Next:
+add r0 r0 1
+bgt r0 17 WrapZero
+j Save
+WrapZero:
+move r0 0
+
+Save:
+sbn HASH("StructureLogicMemory") HASH("MemCmd") Setting r0
+
+SwitchMap:
+beq r0 0 StateStop
+move r1 HASH("ItemIronIngot")
+beq r0 1 Update
+move r1 HASH("ItemGoldIngot")
+beq r0 2 Update
+move r1 HASH("ItemCopperIngot")
+beq r0 3 Update
+move r1 HASH("ItemNickelIngot")
+beq r0 4 Update
+move r1 HASH("ItemSilverIngot")
+beq r0 5 Update
+move r1 HASH("ItemLeadIngot")
+beq r0 6 Update
+move r1 HASH("ItemSiliconIngot")
+beq r0 7 Update
+move r1 HASH("ItemSteelIngot")
+beq r0 8 Update
+move r1 HASH("ItemElectrumIngot")
+beq r0 9 Update
+move r1 HASH("ItemInvarIngot")
+beq r0 10 Update
+move r1 HASH("ItemConstantanIngot")
+beq r0 11 Update
+move r1 HASH("ItemSolderIngot")
+beq r0 12 Update
+move r1 HASH("ItemAstroloyIngot")
+beq r0 13 Update
+move r1 HASH("ItemHastelloyIngot")
+beq r0 14 Update
+move r1 HASH("ItemInconelIngot")
+beq r0 15 Update
+move r1 HASH("ItemStelliteIngot")
+beq r0 16 Update
+move r1 HASH("ItemWaspaloyIngot")
+
+Update:
+sbn HASH("StructureLogicMemory") HASH("MemHash") Setting r1
+ChkBtn:
+l r2 d2 Setting
+beq r2 1 Fire
+j Loop
+Fire:
+sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 1
+# --- NEU: Zwingende Warteschleife (Entpreller) ---
+WaitC:
+yield
+l r2 d2 Setting
+beq r2 1 WaitC
+j Loop
+LockedUI:
+l r2 d2 Setting
+beq r2 1 ForceStop
+j Loop
+ForceStop:
+sbn HASH("StructureLogicMemory") HASH("MemCmd") Setting 0
+sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
+sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
+# --- NEU: Zwingende Warteschleife (Entpreller) ---
+WaitS:
+yield
+l r2 d2 Setting
+beq r2 1 WaitS
+j Loop
+StateStop:
+sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
+sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
+move r1 0
+j Update

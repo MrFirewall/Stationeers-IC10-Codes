@@ -1,0 +1,116 @@
+Loop:
+yield
+lbn r0 HASH("StructureLogicMemory") HASH("MemTrigger") Setting 3
+beq r0 0 Loop
+lbn r1 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
+lbn r7 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+max r7 r7 1
+move r2 0
+move r3 100000
+move r4 0
+move r5 55000
+move r6 100
+move sp 0 # Setzt den Stack sicherheitshalber auf 0 zurück
+beq r1 0 Off
+beq r1 1 S_Ir
+beq r1 2 S_Au
+beq r1 3 S_Cu
+beq r1 4 S_Ni
+beq r1 5 S_Ag
+beq r1 6 S_Pb
+beq r1 7 S_Si
+beq r1 8 R_Steel
+beq r1 9 R_Elec
+beq r1 10 R_Inv
+j Loop
+Off:
+move r2 0
+move r3 0 
+move r4 0
+move r5 0
+move r6 0
+j Write
+S_Ir:
+move r2 800
+move r8 HASH("Iron")
+j B_Push
+S_Au:
+move r2 600
+move r8 HASH("Gold")
+j B_Push
+S_Cu:
+move r2 600
+move r8 HASH("Copper")
+j B_Push
+S_Ni:
+move r2 800
+move r8 HASH("Nickel")
+j B_Push
+S_Ag:
+move r2 600
+move r8 HASH("Silver")
+j B_Push
+S_Pb:
+move r2 400
+move r8 HASH("Lead")
+j B_Push
+S_Si:
+move r2 900
+move r8 HASH("Silicon")
+j B_Push
+B_Push:
+push r8
+push r7
+j Write
+R_Steel:
+move r2 910
+move r4 1000
+mul r8 r7 3
+push HASH("Coal")
+push r7
+push HASH("Iron")
+push r8
+j Write
+R_Elec:
+move r2 600
+move r4 800
+move r5 2400
+push HASH("Silver")
+push r7
+push HASH("Gold")
+push r7
+j Write
+R_Inv:
+move r2 1210
+move r3 1490
+move r4 18000
+move r5 19900
+move r6 10
+push HASH("Nickel")
+push r7
+push HASH("Iron")
+push r7
+j Write
+Write:
+sbn HASH("StructureLogicMemory") HASH("MemMinT") Setting r2
+sbn HASH("StructureLogicMemory") HASH("MemMaxT") Setting r3
+sbn HASH("StructureLogicMemory") HASH("MemMinP") Setting r4
+sbn HASH("StructureLogicMemory") HASH("MemMaxP") Setting r5
+sbn HASH("StructureLogicMemory") HASH("MemPump") Setting r6
+sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 1
+sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
+j ProcessStack
+ProcessStack:
+beq sp 0 Loop # Wenn der Stapel leer ist, gehe direkt zurück zum Anfang!
+pop r11 
+pop r10 
+Dispense:
+sbn 1155865682 r10 Open 1
+yield
+sb 1155865682 Open 0
+yield
+yield
+yield 
+sub r11 r11 1
+bgt r11 0 Dispense
+j ProcessStack

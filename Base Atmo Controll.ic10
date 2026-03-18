@@ -1,0 +1,93 @@
+# Gerte-Zuweisung
+alias Sensor d0
+alias Mixer d1
+alias Abluft d3
+alias RohrSensor d4
+alias Ventil d5
+
+# Hashes & Namen
+define ActiveVentHash -785498334
+define ActiveVentName HASH("ZuluftFlur")
+define KuehlerName HASH("HausKuehler")
+define KuehlerHash -1369060582
+define HeizungHash -287495560           # Liquid Pipe Heater
+
+define AutoLatheWaterName HASH("AutoLatheWater")
+define AutoLatheHash 336213101
+
+# Konstanten
+define ZielDruck 101
+define MinDruck 100
+define MaxCO2 0.05
+define MaxTemp 295.15    # 22C Raumtemperatur
+define MinWasser 278.15  # 5C Ventil-Sperre (Passiv-Schutz)
+define HeizWasser 275.15 # 2C Not-Heizung (Aktiv-Schutz)
+
+# ==========================================
+# INITIALISIERUNG (Wird nur 1x ausgefhrt)
+# ==========================================
+#sbn AutoLatheHash AutoLatheWaterName On 1
+sbn AutoLatheHash AutoLatheWaterName RecipeHash -1616308158
+
+# ==========================================
+# HAUPTSCHLEIFE (Wird endlos wiederholt)
+# ==========================================
+Main:
+yield
+# 1. Daten vom Raumsensor lesen
+l r0 Sensor Pressure
+l r1 Sensor RatioCarbonDioxide
+l r2 Sensor RatioPollutant
+l r3 Sensor RatioVolatiles
+l r4 Sensor Temperature
+
+# 2. Raum-Temperatur regeln (Flssigkeitskhler an/aus)
+sgt r5 r4 MaxTemp
+sbn KuehlerHash KuehlerName On r5
+
+# 3. FROSTSCHUTZ fr das Wasser (Ventil & Heizung)
+l r6 RohrSensor Temperature
+
+# 3a. Ventil steuern (Passiv-Schutz)
+sgt r7 r6 MinWasser
+s Ventil On r7       # Pipe Digital Valve luft ber On
+
+# 3b. Heizung steuern (Aktiv-Schutz)
+slt r8 r6 HeizWasser
+sb HeizungHash On r8
+
+# 4. AutoLathe Endlos-Produktion
+# Wir lesen den Fortschritt der Produktion (0.0 bis 1.0)
+lbn r12 AutoLatheHash AutoLatheWaterName Activate Maximum
+# Wenn r12 > 0 ist, produziert er gerade -> Befehl berspringen
+bgt r12 0 SkipLathe
+# Nur starten, wenn Fortschritt exakt 0 ist (Gert steht still)
+sbn AutoLatheHash AutoLatheWaterName Activate 1
+#sbn AutoLatheHash AutoLatheWaterName On 1
+SkipLathe:
+
+# 5. Logik fr Giftstoffe & CO2 (Abluft-Steuerung)
+move r10 0
+
+bgt r2 0 VentCheck
+bgt r3 0 VentCheck
+bgt r1 MaxCO2 VentCheck
+bgt r0 102 VentCheck
+
+j PressureCheck
+
+VentCheck:
+move r10 1
+
+PressureCheck:
+s Abluft On r10
+s Abluft Mode 1
+
+# 6. Logik fr Frischgas (Zuluft & Mixer)
+slt r11 r0 ZielDruck
+
+sbn ActiveVentHash ActiveVentName Mode 0
+sbn ActiveVentHash ActiveVentName On r11
+s Mixer On r11
+
+j Main

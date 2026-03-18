@@ -1,0 +1,123 @@
+Loop:
+yield
+lbn r0 HASH("StructureLogicMemory") HASH("MemTrigger") Setting 3
+beq r0 0 Loop
+lbn r1 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
+lbn r7 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+max r7 r7 1
+move r2 0
+move r3 100000
+move r4 0
+move r5 55000
+move r6 100
+move sp 0
+beq r1 11 R_Const
+beq r1 12 R_Sold
+beq r1 13 R_Astro
+beq r1 14 R_Hast
+beq r1 15 R_Inc
+beq r1 16 R_Stell
+beq r1 17 R_Wasp
+j Loop
+R_Const:
+move r2 1010
+move r4 20000
+push HASH("Nickel")
+push r7
+push HASH("Copper")
+push r7
+j Write
+R_Sold:
+move r2 460
+move r3 540
+move r4 1000
+move r6 10
+push HASH("Lead")
+push r7
+push HASH("Iron")
+push r7
+j Write
+R_Astro:
+move r2 1000
+move r4 30000
+move r5 40000
+mul r8 r7 2
+push HASH("Cobalt")
+push r7
+push HASH("Copper")
+push r7
+push HASH("Steel")
+push r8
+j Write
+R_Hast:
+move r2 950
+move r3 1000
+move r4 25000
+move r5 30000
+mul r8 r7 2
+push HASH("Cobalt")
+push r7
+push HASH("Nickel")
+push r7
+push HASH("Silver")
+push r8
+j Write
+R_Inc:
+move r2 650
+move r4 23500
+move r5 24000
+mul r8 r7 2
+push HASH("Nickel")
+push r7
+push HASH("Steel")
+push r7
+push HASH("Gold")
+push r8
+j Write
+R_Stell:
+move r2 1800
+move r4 10000
+move r5 20000
+mul r8 r7 2
+push HASH("Silver")
+push r7
+push HASH("Cobalt")
+push r7
+push HASH("Silicon")
+push r8
+j Write
+R_Wasp:
+move r2 400
+move r3 800
+move r4 50000
+mul r8 r7 2
+push HASH("Nickel")
+push r7
+push HASH("Silver")
+push r7
+push HASH("Lead")
+push r8
+j Write
+Write:
+sbn HASH("StructureLogicMemory") HASH("MemMinT") Setting r2
+sbn HASH("StructureLogicMemory") HASH("MemMaxT") Setting r3
+sbn HASH("StructureLogicMemory") HASH("MemMinP") Setting r4
+sbn HASH("StructureLogicMemory") HASH("MemMaxP") Setting r5
+sbn HASH("StructureLogicMemory") HASH("MemPump") Setting r6
+sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 1
+sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
+j ProcessStack
+ProcessStack:
+beq sp 0 Loop # Wenn der Stapel leer ist, gehe direkt zurück zum Anfang!
+pop r11 
+pop r10 
+Dispense:
+sbn 1155865682 r10 Open 1
+yield
+sb 1155865682 Open 0
+yield
+yield
+yield 
+sub r11 r11 1
+bgt r11 0 Dispense
+j ProcessStack
