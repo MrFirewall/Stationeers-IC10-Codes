@@ -1,0 +1,122 @@
+alias rCode r0
+alias rTarget r1
+alias rProg r2
+alias rFuel r3
+alias rActive r4
+alias rTemp r5
+alias rPhase r6
+move rActive 0
+s db Setting 0
+LOOP:
+yield
+bnez rActive MISSION_ACTIVE
+lbn rTemp 491845673 HASH("Auto-Scan-Conf") Setting 3
+beqz rTemp LOOP
+lbn rTemp 1529453938 HASH("RB1_Umbilical_Power") Open 3
+lbn rProg -1814939203 HASH("RB1_Umbilical_Gas") Open 3
+or rTemp rTemp rProg
+bgtz rTemp LOOP
+push 4016
+push 10116
+push 28020116
+push 27020116
+push 26020116
+push 25020116
+push 24020116
+push 23020116
+push 22020116
+push 21020116
+push 20020116
+push 30116
+push 40116
+push 20116
+push 116
+push 16
+pop rTarget
+move rPhase 0
+s db Setting 0
+move rActive 1
+MISSION_ACTIVE:
+lbn rFuel -1093860567 HASH("R1_GasTank") Pressure 3
+blt rFuel 10000 ABORT_MISSION
+lbn rTemp -1125305264 HASH("R1_Bat_1") Ratio 3
+blt rTemp 0.2 ABORT_MISSION
+lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
+bne rCode rTarget EXECUTE_FLIGHT
+beq rTarget 4016 IDLE_MODE
+j SCAN_LOGIC
+ABORT_MISSION:
+lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
+beq rCode 4016 FAIL_ON_PAD
+s db Setting 999
+move rTarget 4016
+move rPhase 3
+j LOOP
+SCAN_LOGIC:
+beq rPhase 0 PHASE_DISC
+beq rPhase 1 PHASE_SURV
+beq rPhase 2 PHASE_CHART
+j PHASE_DONE
+PHASE_DISC:
+lbn rProg 808389066 HASH("R1_Avionics") Discover 3
+blt rProg 0 NEXT_PHASE
+bge rProg 0.99 NEXT_PHASE
+lbn rTemp 808389066 HASH("R1_Avionics") Error 3
+bgtz rTemp NEXT_PHASE
+sbn 808389066 HASH("R1_Avionics") Mode 4
+j LOOP
+PHASE_SURV:
+lbn rProg 808389066 HASH("R1_Avionics") Survey 3
+blt rProg 0 NEXT_PHASE
+bge rProg 0.99 NEXT_PHASE
+lbn rTemp 808389066 HASH("R1_Avionics") Error 3
+bgtz rTemp NEXT_PHASE
+sbn 808389066 HASH("R1_Avionics") Mode 3
+j LOOP
+PHASE_CHART:
+lbn rTemp 808389066 HASH("R1_Avionics") ChartedNavPoints 3
+lbn rProg 808389066 HASH("R1_Avionics") NavPoints 3
+bge rTemp rProg NEXT_PHASE
+lbn rProg 808389066 HASH("R1_Avionics") Chart 3
+blt rProg 0 NEXT_PHASE
+bge rProg 0.99 NEXT_PHASE
+lbn rTemp 808389066 HASH("R1_Avionics") Error 3
+bgtz rTemp NEXT_PHASE
+sbn 808389066 HASH("R1_Avionics") Mode 5
+j LOOP
+NEXT_PHASE:
+sbn 808389066 HASH("R1_Avionics") Mode 1
+add rPhase rPhase 1
+yield
+j LOOP
+PHASE_DONE:
+pop rTarget
+move rPhase 0
+sbn 808389066 HASH("R1_Avionics") Mode 1
+yield
+j LOOP
+EXECUTE_FLIGHT:
+lbn rTemp 808389066 HASH("R1_Avionics") Error 3
+blez rTemp CHECK_DEST
+sbn 808389066 HASH("R1_Avionics") Mode 1
+yield
+j LOOP
+CHECK_DEST:
+lbn rTemp 808389066 HASH("R1_Avionics") DestinationCode 3
+beq rTemp rTarget WAIT_FLIGHT
+sbn 808389066 HASH("R1_Avionics") Mode 1
+sbn 808389066 HASH("R1_Avionics") DestinationCode rTarget
+j LOOP
+WAIT_FLIGHT:
+sb -214232602 On 1
+s db Setting rTarget
+j LOOP
+FAIL_ON_PAD:
+s db Setting 999
+move rActive 0
+j LOOP
+IDLE_MODE:
+sbn 808389066 HASH("R1_Avionics") Mode 1
+move rActive 0
+s db Setting 0
+j LOOP

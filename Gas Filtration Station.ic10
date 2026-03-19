@@ -91,7 +91,7 @@ Switch:
     sgtz FilterState TempRatio
     and FilterState FilterState Run
     sbn TypeFilter HASH("SchadstoffeFiltration") On FilterState
-    l TempRatio Sensor RatioVolatiles
+    l TempRatio Sensor RatioMethane
     sgtz FilterState TempRatio
     and FilterState FilterState Run
     sbn TypeFilter HASH("FluechtigeStoffeFiltration") On FilterState

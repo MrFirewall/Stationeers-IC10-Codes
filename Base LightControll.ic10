@@ -1,0 +1,8 @@
+loop:
+define N_Light HASH("basis_wandleuchte_lang_breit")
+define H_Light 555215790
+define H_OccupancySensor 322782515
+lb r0 H_OccupancySensor Activate 3
+seqz r1 r0 1
+sbn H_Light N_Light On r1
+j loop

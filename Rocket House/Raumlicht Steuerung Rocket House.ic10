@@ -1,5 +1,8 @@
 loop:
 lb r0 322782515 Activate 3
 seqz r0 0
-sb  555215790 On r0
+sb 555215790 On r0
+lb r1 1220484876 Open 3
+sbn 2104106366 HASH("RB1_FuelMixer") On r1
+yield
 j loop

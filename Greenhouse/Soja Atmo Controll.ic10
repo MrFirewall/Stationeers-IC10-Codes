@@ -1,4 +1,4 @@
-# Greenhouse Soja Control
+# Greenhouse Soja Control v2.5
 # Hashes
 define VentHash -1129453144
 define KuehlerHash -1369060582
@@ -17,14 +17,14 @@ define GasMixerName HASH("GrowSojaGasMixer")
 define GasAnalyseName HASH("GrowSojaGasAnalyse")
 
 # Perfekte Werte für Soja
-define TargetPress 75        # Optimal: 50-100 kPa
-define TargetTemp 298.15     # Optimal: 25°C (20-30°C)
-define MinCO2 0.10           # 10% CO2 Minimum
-define MinN2 0.10            # 10% Stickstoff Minimum (NEU)
-define MaxCO2 0.40           # 40% CO2 Max (Sicherheitspuffer)
-define MinToxic 0            # 0% Toleranz für Gift
-define MaxRohrPress 20000    # 20 MPa max Druck im Rohr
-define MinFlushPress 50      # Untere Grenze beim Spülen
+define TargetPress 75    # Optimal: 50-100 kPa
+define TargetTemp 298.15   # Optimal: 25°C
+define MinCO2 0.10      # 10% CO2 Minimum
+define MinN2 0.10      # 10% Stickstoff Minimum
+define MaxCO2 0.40      # 40% CO2 Max
+define MinToxic 0      # 0% Toleranz für Gift
+define MaxRohrPress 20000  # 20 MPa max Druck im Rohr
+define MinFlushPress 50   # Untere Grenze beim Spülen
 
 # ==========================================
 # INITIALISIERUNG
@@ -39,69 +39,75 @@ sbn VentHash ZuluftName PressureExternal TargetPress
 Main:
 yield
 
-# 1. Sensordaten einlesen
+# 1. Sensordaten einlesen (Register r0 bis r7)
 lbn r0 SensorHash SensorName Pressure 3
 lbn r1 SensorHash SensorName RatioCarbonDioxide 3
 lbn r2 SensorHash SensorName RatioPollutant 3
-lbn r3 SensorHash SensorName RatioVolatiles 3
-lbn r4 SensorHash SensorName RatioNitrogen 3
-lbn r5 SensorHash SensorName Temperature 3
+lbn r3 SensorHash SensorName RatioHydrogen 3       # Neu
+lbn r4 SensorHash SensorName RatioMethane 3        # Neu
+lbn r5 SensorHash SensorName RatioNitrousOxide 3   # Neu
+lbn r6 SensorHash SensorName RatioNitrogen 3       # Verschoben auf r6
+lbn r7 SensorHash SensorName Temperature 3        # Verschoben auf r7
 
 # 2. Temperatursteuerung
-sgt r6 r5 TargetTemp
-sbn KuehlerHash KuehlerName On r6
-slt r6 r5 293.15
-sbn HeizungHash HeizungName On r6
+sgt r8 r7 TargetTemp
+sbn KuehlerHash KuehlerName On r8
+slt r8 r7 293.15
+sbn HeizungHash HeizungName On r8
 
 # 3. Abluft-Logik
-move r8 0               
-move r9 TargetPress     
+move r10 0        
+move r11 TargetPress   
 
-# Gift-Check (Stickstoff-Limit entfernt!)
+# Gift-Check (Inklusive neuer Gase)
 bgt r2 MinToxic ToxicFlush 
 bgt r3 MinToxic ToxicFlush 
+bgt r4 MinToxic ToxicFlush 
+bgt r5 MinToxic ToxicFlush 
 bgt r1 MaxCO2 ToxicFlush
 
-# Überdruck-Check
+# Überdruck-Check (Soja-Limit bei 80 kPa)
 bgt r0 80 Overpressure
 j ApplyAbluft
 
 Overpressure:
-move r8 1
-move r9 TargetPress
+move r10 1
+move r11 TargetPress
 j ApplyAbluft
 
 ToxicFlush:
-move r8 1
-move r9 MinFlushPress
+move r10 1
+move r11 MinFlushPress
 
 ApplyAbluft:
-sbn VentHash AbluftName PressureExternal r9
-sbn VentHash AbluftName On r8
+sbn VentHash AbluftName PressureExternal r11
+sbn VentHash AbluftName On r10
 
 # 4. Zuluft-Logik
-move r10 0
+move r12 0
 
 # Normaler Bedarf (Druck, CO2 oder N2 zu niedrig)
-slt r11 r0 TargetPress
-slt r12 r1 MinCO2
-slt r13 r4 MinN2
-or r10 r11 r12
-or r10 r10 r13
+slt r13 r0 TargetPress
+slt r8 r1 MinCO2
+slt r9 r6 MinN2
+or r12 r13 r8
+or r12 r12 r9
 
 # Zwangslüftung bei schlechtem Gas
-bgt r2 MinToxic ForceAir   
-bgt r3 MinToxic ForceAir   
+bgt r2 MinToxic ForceAir  
+bgt r3 MinToxic ForceAir  
+bgt r4 MinToxic ForceAir 
+bgt r5 MinToxic ForceAir
 bgt r1 MaxCO2 ForceAir
 j ApplyZuluft
 
 ForceAir:
-move r10 1
+move r12 1
 
 ApplyZuluft:
-sbn VentHash ZuluftName On r10
-lbn r11 GasAnalyseHash GasAnalyseName Pressure 3
-slt r12 r11 MaxRohrPress
-sbn GasMixerHash GasMixerName On r12
+sbn VentHash ZuluftName On r12
+lbn r13 GasAnalyseHash GasAnalyseName Pressure 3
+slt r8 r13 MaxRohrPress
+sbn GasMixerHash GasMixerName On r8
 
 j Main

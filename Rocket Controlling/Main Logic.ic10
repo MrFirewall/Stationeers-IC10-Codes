@@ -21,6 +21,7 @@ define N_UmbiGas   HASH("RB1_Umbilical_Gas")
 define N_Bat1      HASH("R1_Bat_1")
 define N_GasTank   HASH("R1_GasTank")
 define N_Avionics  HASH("R1_Avionics")
+define N_LEDDISPLAY_Test HASH("RB1_LEDDISPLAY01_TEST")
 define N_LEDDISPLAY_Battery HASH("RB1_LEDDISPLAY_Battery")
 define N_LEDDISPLAY_Pressure HASH("RB1_LEDDISPLAY_Pressure")
 define N_LEDDISPLAY_TTD HASH("RB1_LEDDISPLAY_TTD")
@@ -30,41 +31,36 @@ define N_LEDDISPLAY_Altitude HASH("RB1_LEDDISPLAY_Altitude")
 define MIN_BAT  0.95
 define MAX_BAT  0.99
 define MIN_GAS  25000
-define MAX_GAS  32000
+define MAX_GAS  30000
 define CODE_PAD 4016
 
 LOOP:
     yield
     sb H_LEDDisplay On 1
-
     # --- Avionics auslesen ---
     lbn rCode H_Avionics N_Avionics CurrentCode 3
-    s d0 Setting rCode
+    sbn H_LEDDisplay N_LEDDISPLAY_Test Setting rCode
     lbn rAlt H_Avionics N_Avionics Altitude 3
-
     # --- Scanner Logik ---
     sne rTemp rCode CODE_PAD
     sne rValue rAlt 0
     or rTemp rTemp rValue
-    sb H_Rocket_Scanner On rTemp 
-
+    sb H_Rocket_Scanner On rTemp
     # --- Displays updaten ---
     lbn rValue H_Avionics N_Avionics DestinationCode 3
     sbn H_LEDDisplay N_LEDDISPLAY_DC Setting rValue
     sbn H_LEDDisplay N_LEDDISPLAY_DC Mode 0
-    
     lbn rValue H_Avionics N_Avionics TimeToDestination 3
     sbn H_LEDDisplay N_LEDDISPLAY_TTD Setting rValue
     sbn H_LEDDisplay N_LEDDISPLAY_TTD Mode 7
-    
-    lb rValue H_Bat Ratio 0
+    # KORREKTUR: Nutze lbn, um NUR die Raketenbatterie zu lesen
+    lb rValue H_Bat Ratio 2
     sbn H_LEDDisplay N_LEDDISPLAY_Battery Setting rValue
     sbn H_LEDDisplay N_LEDDISPLAY_Battery Mode 1
-    
-    lb rValue H_GasTank Pressure 0
-    sbn H_LEDDisplay N_LEDDISPLAY_Pressure Setting rValue 
+    # KORREKTUR: Nutze lbn, um NUR den Raketentank zu lesen
+    lb rValue H_GasTank Pressure 2
+    sbn H_LEDDisplay N_LEDDISPLAY_Pressure Setting rValue
     sbn H_LEDDisplay N_LEDDISPLAY_Pressure Mode 14
-
     # --- Raketen Status ---
     bnez rAlt ROCKET_AWAY
     bne rCode CODE_PAD ROCKET_AWAY
@@ -73,16 +69,14 @@ LOOP:
 ROCKET_AWAY:
     sbn H_UmbiPower N_UmbiPower Open 1
     sbn H_UmbiGas N_UmbiGas Open 1
-    move rBatState 1
-    move rGasState 1
     j LOOP
 
 ROCKET_ON_PAD:
     # --- Power Automatik ---
     lbn rValue H_UmbiPower N_UmbiPower On 3
     beq rValue 0 POWER_OFF
-    
-    lb rValue H_Bat Ratio 0
+    lbn rBatState H_UmbiPower N_UmbiPower Open 0
+    lb rValue H_Bat Ratio 2
     slt rTemp rValue MIN_BAT
     or rBatState rBatState rTemp
     sge rTemp rValue MAX_BAT
@@ -97,8 +91,8 @@ CHECK_SPRIT:
     # --- Gas Automatik ---
     lbn rValue H_UmbiGas N_UmbiGas On 3
     beq rValue 0 SPRIT_OFF
-    
-    lb rValue H_GasTank Pressure 0
+    lbn rGasState H_UmbiGas N_UmbiGas Open 0
+    lbn rValue H_GasTank N_GasTank Pressure 2
     slt rTemp rValue MIN_GAS
     or rGasState rGasState rTemp
     sge rTemp rValue MAX_GAS
