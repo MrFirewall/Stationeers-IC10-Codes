@@ -5,6 +5,7 @@ alias rFuel r3
 alias rActive r4
 alias rTemp r5
 alias rPhase r6
+alias rTemp2 r7
 move rActive 0
 s db Setting 0
 LOOP:
@@ -18,6 +19,8 @@ or rTemp rTemp rProg
 bgtz rTemp LOOP
 push 4016
 push 10116
+push 30116
+push 40116
 push 28020116
 push 27020116
 push 26020116
@@ -27,8 +30,6 @@ push 23020116
 push 22020116
 push 21020116
 push 20020116
-push 30116
-push 40116
 push 20116
 push 116
 push 16
@@ -44,45 +45,36 @@ blt rTemp 0.2 ABORT_MISSION
 lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
 bne rCode rTarget EXECUTE_FLIGHT
 beq rTarget 4016 IDLE_MODE
-j SCAN_LOGIC
-ABORT_MISSION:
-lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
-beq rCode 4016 FAIL_ON_PAD
-s db Setting 999
-move rTarget 4016
-move rPhase 3
-j LOOP
-SCAN_LOGIC:
 beq rPhase 0 PHASE_DISC
 beq rPhase 1 PHASE_SURV
 beq rPhase 2 PHASE_CHART
 j PHASE_DONE
 PHASE_DISC:
+lbn rTemp 808389066 HASH("R1_Avionics") Sites 3
+bltz rTemp NEXT_PHASE
+bge rTemp 9 NEXT_PHASE
 lbn rProg 808389066 HASH("R1_Avionics") Discover 3
-blt rProg 0 NEXT_PHASE
-bge rProg 0.99 NEXT_PHASE
-lbn rTemp 808389066 HASH("R1_Avionics") Error 3
-bgtz rTemp NEXT_PHASE
-sbn 808389066 HASH("R1_Avionics") Mode 4
-j LOOP
+move rTemp2 4
+j EVAL_PHASE
 PHASE_SURV:
 lbn rProg 808389066 HASH("R1_Avionics") Survey 3
-blt rProg 0 NEXT_PHASE
-bge rProg 0.99 NEXT_PHASE
-lbn rTemp 808389066 HASH("R1_Avionics") Error 3
-bgtz rTemp NEXT_PHASE
-sbn 808389066 HASH("R1_Avionics") Mode 3
-j LOOP
+move rTemp2 3
+j EVAL_PHASE
 PHASE_CHART:
 lbn rTemp 808389066 HASH("R1_Avionics") ChartedNavPoints 3
 lbn rProg 808389066 HASH("R1_Avionics") NavPoints 3
 bge rTemp rProg NEXT_PHASE
 lbn rProg 808389066 HASH("R1_Avionics") Chart 3
+move rTemp2 5
+EVAL_PHASE:
 blt rProg 0 NEXT_PHASE
 bge rProg 0.99 NEXT_PHASE
 lbn rTemp 808389066 HASH("R1_Avionics") Error 3
 bgtz rTemp NEXT_PHASE
-sbn 808389066 HASH("R1_Avionics") Mode 5
+sb 2014252591 On 1
+lbn rTemp 808389066 HASH("R1_Avionics") Mode 3
+beq rTemp rTemp2 LOOP
+sbn 808389066 HASH("R1_Avionics") Mode rTemp2
 j LOOP
 NEXT_PHASE:
 sbn 808389066 HASH("R1_Avionics") Mode 1
@@ -94,6 +86,13 @@ pop rTarget
 move rPhase 0
 sbn 808389066 HASH("R1_Avionics") Mode 1
 yield
+j LOOP
+ABORT_MISSION:
+lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
+beq rCode 4016 FAIL_ON_PAD
+s db Setting 999
+move rTarget 4016
+move rPhase 3
 j LOOP
 EXECUTE_FLIGHT:
 lbn rTemp 808389066 HASH("R1_Avionics") Error 3
