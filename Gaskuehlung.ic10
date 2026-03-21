@@ -1,0 +1,89 @@
+# IC10 Utility: Ventil & Pumpen Steuerung
+alias Analyzer d0
+alias Pump d3
+alias ExtSensor d4
+
+# --- ALIAS FIXES ---
+alias Temp r0
+alias Pres r4
+alias HeaterState r6
+alias ExtTemp r7
+alias Run r8
+
+# Prefab/Name Hashes
+define VentName HASH("KaelteVent")
+define VentHash -785498334
+define TypeHeater -419758574 # StructurePipeHeater
+
+# Konstanten (Kelvin)
+define T_MAX 293.15 # 20 Grad (Obergrenze Pumpe)
+define T_MIN 273.15 # 0 Grad (Untergrenze Pumpe)
+define TV_MIN 283.15 # 10 Grad (Trigger Vents)
+define TargetTemp 288.15 # NEU: 15 Grad Zieltemperatur Heizung
+define MAX_TEMP 293.15 # NEU: 30 Grad Notabschaltung
+define MIN_PRES 0 # NEU: 10 kPa Minimaldruck
+
+Main:
+yield
+l Temp Analyzer Temperature
+l Pres Analyzer Pressure
+l ExtTemp ExtSensor Temperature
+
+# --- HEIZUNGS- & NOTABSCHALTUNGS-LOGIK ---
+move HeaterState 0
+move Run 1 # Standardmäßig darf das System laufen
+
+# Überhitzungsschutz
+bgt Temp MAX_TEMP TooHot
+# Reicht die Temperatur nicht? Dann prüfen ob wir heizen können
+blt Temp TargetTemp HeatUp
+j EndHeaterCheck
+
+HeatUp:
+# Nur heizen, wenn Mindestdruck vorhanden ist
+bgt Pres MIN_PRES SetHeater
+j EndHeaterCheck
+
+SetHeater:
+move HeaterState 1
+j EndHeaterCheck
+
+TooHot:
+move Run 0 # Setzt Run auf 0 (Pumpe und Vents bleiben aus)
+move HeaterState 0 # Heizung zwingend aus
+
+EndHeaterCheck:
+# Heizung entsprechend dem berechneten State (0 oder 1) schalten
+sbn TypeHeater HASH("Heater") On HeaterState
+
+
+# --- PUMPEN LOGIK (FENSTER-MODUS) ---
+# r1 = 1 wenn Temp < 20 Grad
+slt r1 Temp T_MAX
+# r2 = 1 wenn Temp > 0 Grad
+sgt r2 Temp T_MIN
+# r3 = 1, wenn 0 < T < 20
+and r3 r1 r2
+# Druck muss größer als 10 kPa sein
+sgt r5 Pres MIN_PRES
+and r3 r3 r5
+# System darf nicht wegen Überhitzung blockiert sein (Run = 1)
+and r3 r3 Run
+
+# Schalte Pumpe
+s Pump On r3
+s Pump Setting 100
+
+
+# --- BATCH-VENT-LOGIK (Kälte-Ernte) ---
+# Kälte einsaugen (Inward = Mode 1)
+#sbn VentHash VentName Mode 1
+#sbn VentHash VentName PressureExternal 0
+
+# Vents an bei <= TV_MIN
+#sle r14 ExtTemp TV_MIN
+# Vents nur einschalten, wenn kein Überhitzungs-Notfall vorliegt
+#and r14 r14 Run
+#sbn VentHash VentName On r14
+
+j Main

@@ -28,7 +28,7 @@ define CODE_PAD 4016
 
 LOOP:
     yield
-    
+
     # --- Blinker Taktgeber ---
     add rTick rTick 1
     mod rTick rTick 4
@@ -37,7 +37,7 @@ LOOP:
     # --- Raketen Status ---
     lbn rCode H_Avionics N_Avionics CurrentCode 3
     lbn rAlt H_Avionics N_Avionics Altitude 3
-    
+
     bnez rAlt ROCKET_AWAY
     bne rCode CODE_PAD ROCKET_AWAY
     j ROCKET_ON_PAD
@@ -54,12 +54,12 @@ ROCKET_ON_PAD:
     # --- Power LED Logik ---
     lbn rValue H_UmbiPower N_UmbiPower On 3
     beq rValue 0 POWER_OFF
-    
+
     # Liest aus, was Chip 1 dem Umbilical befohlen hat
     lbn rOpen H_UmbiPower N_UmbiPower Open 3
     select rColor rOpen COLOR_RED COLOR_GREEN
     select rValue rOpen 1 rBlink
-    
+
     sbn H_LED N_PowerLED Color rColor
     sbn H_LED N_PowerLED On rValue
     j CHECK_SPRIT
@@ -72,12 +72,12 @@ CHECK_SPRIT:
     # --- Gas LED Logik ---
     lbn rValue H_UmbiGas N_UmbiGas On 3
     beq rValue 0 SPRIT_OFF
-    
+
     # Liest aus, was Chip 1 dem Umbilical befohlen hat
     lbn rOpen H_UmbiGas N_UmbiGas Open 3
     select rColor rOpen COLOR_RED COLOR_GREEN
     select rValue rOpen 1 rBlink
-    
+
     sbn H_LED N_GasLED Color rColor
     sbn H_LED N_GasLED On rValue
     j LOOP
