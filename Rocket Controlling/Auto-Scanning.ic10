@@ -1,121 +1,113 @@
-alias rCode r0
-alias rTarget r1
-alias rProg r2
-alias rFuel r3
-alias rActive r4
-alias rTemp r5
-alias rPhase r6
-alias rTemp2 r7
-move rActive 0
-s db Setting 0
 LOOP:
 yield
-bnez rActive MISSION_ACTIVE
-lbn rTemp 491845673 HASH("Auto-Scan-Conf") Setting 3
-beqz rTemp LOOP
-lbn rTemp 1529453938 HASH("RB1_Umbilical_Power") Open 3
-lbn rProg -1814939203 HASH("RB1_Umbilical_Gas") Open 3
-or rTemp rTemp rProg
-bgtz rTemp LOOP
-push 4016
-push 10116
-push 30116
-push 40116
-push 28020116
-push 27020116
-push 26020116
-push 25020116
-push 24020116
-push 23020116
-push 22020116
-push 21020116
-push 20020116
-push 20116
-push 116
-push 16
-pop rTarget
-move rPhase 0
-s db Setting 0
-move rActive 1
+bnez r4 MISSION_ACTIVE
+lbn r5 491845673 HASH("Auto-Scan-Conf") Setting 3
+beqz r5 LOOP
+lbn r5 1529453938 HASH("RB1_Umbilical_Power") Open 3
+lbn r2 -1814939203 HASH("RB1_Umbilical_Gas") Open 3
+or r5 r5 r2
+bgtz r5 LOOP
+push 4016 # Home / Launch Pad
+push 1010116 # Mars Lagrange Transfer
+push 310116 # Columnar Asteroid
+push 210116 # Ferrouse Asteroid Sector
+push 10116 # Deimos
+move r7 20030116 # Metallic Asteroids
+jal PUSH_SITES
+push 30116 # Metallic Field
+move r7 20040116 # Rocks
+jal PUSH_SITES
+push 40116 # Rocky Asteroid
+move r7 20020116 # Vapors
+jal PUSH_SITES
+push 20116 # Frozen Vapor
+push 116 # Phobos
+push 16 # Mars Orbit
+pop r1
+move r6 0
+move r4 1
 MISSION_ACTIVE:
-lbn rFuel -1093860567 HASH("R1_GasTank") Pressure 3
-blt rFuel 10000 ABORT_MISSION
-lbn rTemp -1125305264 HASH("R1_Bat_1") Ratio 3
-blt rTemp 0.2 ABORT_MISSION
-lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
-bne rCode rTarget EXECUTE_FLIGHT
-beq rTarget 4016 IDLE_MODE
-beq rPhase 0 PHASE_DISC
-beq rPhase 1 PHASE_SURV
-beq rPhase 2 PHASE_CHART
-j PHASE_DONE
+lbn r3 -1093860567 HASH("R1_GasTank") Pressure 3
+blt r3 10000 ABORT_MISSION
+lbn r5 -1125305264 HASH("R1_Bat_1") Ratio 3
+blt r5 0.2 ABORT_MISSION
+lbn r0 808389066 HASH("R1_Avionics") CurrentCode 3
+bne r0 r1 EXECUTE_FLIGHT
+beq r1 4016 IDLE_MODE
+bgt r6 2 PHASE_DONE
+beq r6 1 PHASE_SURV
+beq r6 2 PHASE_CHART
 PHASE_DISC:
-lbn rTemp 808389066 HASH("R1_Avionics") Sites 3
-bltz rTemp NEXT_PHASE
-bge rTemp 9 NEXT_PHASE
-lbn rProg 808389066 HASH("R1_Avionics") Discover 3
-move rTemp2 4
+lbn r5 808389066 HASH("R1_Avionics") Sites 3
+bltz r5 NEXT_PHASE
+bge r5 9 NEXT_PHASE
+lbn r2 808389066 HASH("R1_Avionics") Discover 3
+move r7 4
 j EVAL_PHASE
 PHASE_SURV:
-lbn rProg 808389066 HASH("R1_Avionics") Survey 3
-move rTemp2 3
+lbn r2 808389066 HASH("R1_Avionics") Survey 3
+move r7 3
 j EVAL_PHASE
 PHASE_CHART:
-lbn rTemp 808389066 HASH("R1_Avionics") ChartedNavPoints 3
-lbn rProg 808389066 HASH("R1_Avionics") NavPoints 3
-bge rTemp rProg NEXT_PHASE
-lbn rProg 808389066 HASH("R1_Avionics") Chart 3
-move rTemp2 5
+lbn r5 808389066 HASH("R1_Avionics") ChartedNavPoints 3
+lbn r2 808389066 HASH("R1_Avionics") NavPoints 3
+bge r5 r2 NEXT_PHASE
+lbn r2 808389066 HASH("R1_Avionics") Chart 3
+move r7 5
 EVAL_PHASE:
-blt rProg 0 NEXT_PHASE
-bge rProg 0.99 NEXT_PHASE
-lbn rTemp 808389066 HASH("R1_Avionics") Error 3
-bgtz rTemp NEXT_PHASE
+blt r2 0 NEXT_PHASE
+bge r2 0.99 NEXT_PHASE
+lbn r5 808389066 HASH("R1_Avionics") Error 3
+bgtz r5 NEXT_PHASE
 sb 2014252591 On 1
-lbn rTemp 808389066 HASH("R1_Avionics") Mode 3
-beq rTemp rTemp2 LOOP
-sbn 808389066 HASH("R1_Avionics") Mode rTemp2
-j LOOP
-NEXT_PHASE:
-sbn 808389066 HASH("R1_Avionics") Mode 1
-add rPhase rPhase 1
-yield
+lbn r5 808389066 HASH("R1_Avionics") Mode 3
+beq r5 r7 LOOP
+sbn 808389066 HASH("R1_Avionics") Mode r7
 j LOOP
 PHASE_DONE:
-pop rTarget
-move rPhase 0
+pop r1
+move r6 -1
+NEXT_PHASE:
 sbn 808389066 HASH("R1_Avionics") Mode 1
+add r6 r6 1
 yield
 j LOOP
 ABORT_MISSION:
-lbn rCode 808389066 HASH("R1_Avionics") CurrentCode 3
-beq rCode 4016 FAIL_ON_PAD
+lbn r0 808389066 HASH("R1_Avionics") CurrentCode 3
+beq r0 4016 FAIL_ON_PAD
 s db Setting 999
-move rTarget 4016
-move rPhase 3
+move r1 4016
+move r6 3
 j LOOP
 EXECUTE_FLIGHT:
-lbn rTemp 808389066 HASH("R1_Avionics") Error 3
-blez rTemp CHECK_DEST
+lbn r5 808389066 HASH("R1_Avionics") Error 3
+bgtz r5 RESET_MODE
+lbn r5 808389066 HASH("R1_Avionics") DestinationCode 3
+beq r5 r1 WAIT_FLIGHT
 sbn 808389066 HASH("R1_Avionics") Mode 1
-yield
-j LOOP
-CHECK_DEST:
-lbn rTemp 808389066 HASH("R1_Avionics") DestinationCode 3
-beq rTemp rTarget WAIT_FLIGHT
-sbn 808389066 HASH("R1_Avionics") Mode 1
-sbn 808389066 HASH("R1_Avionics") DestinationCode rTarget
+sbn 808389066 HASH("R1_Avionics") DestinationCode r1
 j LOOP
 WAIT_FLIGHT:
 sb -214232602 On 1
-s db Setting rTarget
+s db Setting r1
 j LOOP
 FAIL_ON_PAD:
 s db Setting 999
-move rActive 0
+move r4 0
 j LOOP
 IDLE_MODE:
-sbn 808389066 HASH("R1_Avionics") Mode 1
-move rActive 0
+move r4 0
 s db Setting 0
+RESET_MODE:
+sbn 808389066 HASH("R1_Avionics") Mode 1
+yield
 j LOOP
+PUSH_SITES:
+move r5 0
+PS_LOOP:
+mul r0 r5 1000000
+add r0 r7 r0
+push r0
+add r5 r5 1
+blt r5 9 PS_LOOP
+j ra
