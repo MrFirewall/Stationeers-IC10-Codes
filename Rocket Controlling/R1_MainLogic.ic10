@@ -30,8 +30,8 @@ define N_LEDDISPLAY_Altitude HASH("RB1_LEDDISPLAY_Altitude")
 
 define MIN_BAT 0.95
 define MAX_BAT 0.99
-define MIN_GAS 25000
-define MAX_GAS 30000
+define MIN_GAS 35000
+define MAX_GAS 40000
 define CODE_PAD 4016
 
 LOOP:
@@ -42,10 +42,10 @@ lbn rCode H_Avionics N_Avionics CurrentCode 3
 sbn H_LEDDisplay N_LEDDISPLAY_Test Setting rCode
 lbn rAlt H_Avionics N_Avionics Altitude 3
 # --- Scanner Logik ---
-sne rTemp rCode CODE_PAD
-sne rValue rAlt 0
-or rTemp rTemp rValue
-sb H_Rocket_Scanner On rTemp
+#sne rTemp rCode CODE_PAD
+#sne rValue rAlt 0
+#or rTemp rTemp rValue
+#sb H_Rocket_Scanner On rTemp
 # --- Displays updaten ---
 lbn rValue H_Avionics N_Avionics DestinationCode 3
 sbn H_LEDDisplay N_LEDDISPLAY_DC Setting rValue
@@ -53,11 +53,9 @@ sbn H_LEDDisplay N_LEDDISPLAY_DC Mode 0
 lbn rValue H_Avionics N_Avionics TimeToDestination 3
 sbn H_LEDDisplay N_LEDDISPLAY_TTD Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_TTD Mode 7
-# KORREKTUR: Nutze lbn, um NUR die Raketenbatterie zu lesen
 lbn rValue H_Bat N_Bat1 Ratio 2
 sbn H_LEDDisplay N_LEDDISPLAY_Battery Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_Battery Mode 1
-# KORREKTUR: Nutze lbn, um NUR den Raketentank zu lesen
 lbn rValue H_GasTank N_GasTank Pressure 2
 sbn H_LEDDisplay N_LEDDISPLAY_Pressure Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_Pressure Mode 14

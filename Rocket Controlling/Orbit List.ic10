@@ -1,0 +1,22 @@
+push 4016 # Home / Launch Pad
+push 201010116 # Mars L5
+push 101010116 # Mars L4
+#push 1010116 # Mars Lagrange Transfer
+move r7 2003010116 # Columnar Asteroids Sector Resource
+jal PUSH_SITES
+#push 3010116 # Columnar Asteroid
+move r7 2002010116 # Ferrouse Asteroids Sector Resource
+jal PUSH_SITES
+#push 2010116 # Ferrouse Asteroid Sector
+#push 10116 # Deimos
+#move r7 20030116 # Metallic Asteroids
+#jal PUSH_SITES
+#push 30116 # Metallic Field
+#move r7 20040116 # Rocks
+#jal PUSH_SITES
+#push 40116 # Rocky Asteroid
+#move r7 20020116 # Vapors
+#jal PUSH_SITES
+#push 20116 # Frozen Vapor
+#push 116 # Phobos
+#push 16 # Mars Orbit

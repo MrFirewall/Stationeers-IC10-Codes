@@ -11,16 +11,16 @@ define H_UmbiGas -1814939203
 define H_UmbiPower 1529453938
 define H_UmbiChute -958884053
 define H_Bat -1125305264
-define H_GasTank -1385712131
+define H_GasTank -1093860567
 define H_ChuteSilo 1151864003
 define H_Avionics 808389066
 define H_LEDDisplay -1949054743
-define H_Rocket_Scanner 2014252591
+define H_Rocket_Miner -2087223687
 define N_UmbiPower HASH("RB2_Umbilical_Power")
 define N_UmbiGas HASH("RB2_Umbilical_Gas")
 define N_UmbiChute HASH("RB2_Umbilical_Chute")
-define N_BatReserve HASH("R2_Bat_Reserve")
-define N_GasTank HASH("R2_GasTank")
+define N_Bat_1 HASH("R2_Bat_1")
+define N_GasTank HASH("R2_GasTank_1")
 define N_ChuteSilo HASH("R2_ChuteSilo")
 define N_Avionics HASH("R2_Avionics")
 define N_LEDDISPLAY_CC HASH("RB2_LEDDISPLAY_CC")
@@ -28,7 +28,7 @@ define N_LEDDISPLAY_Battery HASH("RB2_LEDDISPLAY_Battery")
 define N_LEDDISPLAY_Pressure HASH("RB2_LEDDISPLAY_Pressure")
 define N_LEDDISPLAY_TTD HASH("RB2_LEDDISPLAY_TTD")
 define N_LEDDISPLAY_DC HASH("RB2_LEDDISPLAY_DC")
-define N_LEDDISPLAY_Altitude HASH("RB2_LEDDISPLAY_Altitude")
+define N_LEDDISPLAY_DrillCondition HASH("RB2_LEDDISPLAY_DrillCondition")
 define MIN_BAT 0.95
 define MAX_BAT 0.99
 define MIN_GAS 35000
@@ -39,18 +39,21 @@ yield
 sb H_LEDDisplay On 1
 lbn rCode H_Avionics N_Avionics CurrentCode 3
 sbn H_LEDDisplay N_LEDDISPLAY_CC Setting rCode
+lb rCode H_Rocket_Miner DrillCondition 2
+sbn H_LEDDisplay N_LEDDISPLAY_DrillCondition Setting rCode
+sbn H_LEDDisplay N_LEDDISPLAY_DrillCondition Mode 1
 lbn rAlt H_Avionics N_Avionics Altitude 3
 sne rTemp rCode CODE_PAD
 sne rValue rAlt 0
 or rTemp rTemp rValue
-sb H_Rocket_Scanner On rTemp
+sb H_Rocket_Miner On rTemp
 lbn rValue H_Avionics N_Avionics DestinationCode 3
 sbn H_LEDDisplay N_LEDDISPLAY_DC Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_DC Mode 0
 lbn rValue H_Avionics N_Avionics TimeToDestination 3
 sbn H_LEDDisplay N_LEDDISPLAY_TTD Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_TTD Mode 7
-lbn rValue H_Bat N_BatReserve Ratio 3
+lbn rValue H_Bat N_Bat_1 Ratio 3
 sbn H_LEDDisplay N_LEDDISPLAY_Battery Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_Battery Mode 1
 lbn rValue H_GasTank N_GasTank Pressure 3
@@ -68,7 +71,7 @@ ROCKET_ON_PAD:
 lbn rValue H_UmbiPower N_UmbiPower On 3
 beq rValue 0 POWER_OFF
 lbn rBatState H_UmbiPower N_UmbiPower Open 0
-lbn rValue H_Bat N_BatReserve Ratio 1
+lbn rValue H_Bat N_Bat_1 Ratio 1
 slt rTemp rValue MIN_BAT
 or rBatState rBatState rTemp
 sge rTemp rValue MAX_BAT

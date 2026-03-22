@@ -9,32 +9,26 @@ lbn r5 1529453938 HASH("RB1_Umbilical_Power") Open 3
 lbn r2 -1814939203 HASH("RB1_Umbilical_Gas") Open 3
 or r5 r5 r2
 bgtz r5 LOOP
+
 push 4016 # Home / Launch Pad
-push 1010116 # Mars Lagrange Transfer
-push 310116 # Columnar Asteroid
-push 210116 # Ferrouse Asteroid Sector
-push 10116 # Deimos
-move r7 20030116 # Metallic Asteroids
+push 201010116 # Mars L5
+push 101010116 # Mars L4
+move r7 2003010116 # Metallic Asteroids
 jal PUSH_SITES
-push 30116 # Metallic Field
-move r7 20040116 # Rocks
+move r7 2002010116 # Metallic Asteroids
 jal PUSH_SITES
-push 40116 # Rocky Asteroid
-#move r7 20020116 # Vapors
-#jal PUSH_SITES
-#push 20116 # Frozen Vapor
-#push 116 # Phobos
-#push 16 # Mars Orbit
+
 pop r1
 move r6 0
 move r4 1
 MISSION_ACTIVE:
 lbn r3 -1093860567 HASH("R1_GasTank") Pressure 3
-blt r3 10000 ABORT_MISSION
+blt r3 15000 ABORT_MISSION
 lbn r5 -1125305264 HASH("R1_Bat_1") Ratio 3
 blt r5 0.2 ABORT_MISSION
 lbn r0 808389066 HASH("R1_Avionics") CurrentCode 3
 bne r0 r1 EXECUTE_FLIGHT
+sbn -214232602 HASH("R1_Engine") On 0
 beq r1 4016 IDLE_MODE
 bgt r6 2 PHASE_DONE
 beq r6 1 PHASE_SURV
@@ -70,6 +64,7 @@ PHASE_DONE:
 pop r1
 move r6 -1
 NEXT_PHASE:
+sb 2014252591 On 0
 sbn 808389066 HASH("R1_Avionics") Mode 1
 add r6 r6 1
 yield
@@ -77,9 +72,16 @@ j LOOP
 ABORT_MISSION:
 lbn r0 808389066 HASH("R1_Avionics") CurrentCode 3
 beq r0 4016 FAIL_ON_PAD
+lbn r5 808389066 HASH("R1_Avionics") DestinationCode 3
+beq r5 4016 FLY_HOME
+sb 2014252591 On 0
+sbn 808389066 HASH("R1_Avionics") Mode 1
+sbn 808389066 HASH("R1_Avionics") DestinationCode 4016
+yield
+j LOOP
+FLY_HOME:
+sbn -214232602 HASH("R1_Engine") On 1
 s db Setting 999
-move r1 4016
-move r6 3
 j LOOP
 EXECUTE_FLIGHT:
 lbn r5 808389066 HASH("R1_Avionics") Error 3
@@ -90,7 +92,7 @@ sbn 808389066 HASH("R1_Avionics") Mode 1
 sbn 808389066 HASH("R1_Avionics") DestinationCode r1
 j LOOP
 WAIT_FLIGHT:
-sb -214232602 On 1
+sbn -214232602 HASH("R1_Engine") On 1
 s db Setting r1
 j LOOP
 FAIL_ON_PAD:
@@ -101,6 +103,7 @@ IDLE_MODE:
 move r4 0
 s db Setting 0
 RESET_MODE:
+sb 2014252591 On 0
 sbn 808389066 HASH("R1_Avionics") Mode 1
 yield
 j LOOP
