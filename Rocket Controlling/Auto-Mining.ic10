@@ -9,22 +9,12 @@ lbn r5 1529453938 HASH("RB2_Umbilical_Power") Open 3
 lbn r2 -1814939203 HASH("RB2_Umbilical_Gas") Open 3
 or r5 r5 r2
 bgtz r5 LOOP
-#push 4116 # Home / Launch Pad
-#push 1010116 # Mars Lagrange Transfer
-#push 310116 # Columnar Asteroid
-#push 210116 # Ferrouse Asteroid Sector
-#push 10116 # Deimos
 move r7 20030116 # Metallic Asteroids
 jal PUSH_SITES
-#push 30116 # Metallic Field
 move r7 20040116 # Rocks
 jal PUSH_SITES
-#push 40116 # Rocky Asteroid
 move r7 20020116 # Vapors
 jal PUSH_SITES
-#push 20116 # Frozen Vapor
-#push 116 # Phobos
-#push 16 # Mars Orbit
 pop r1
 move r6 0
 move r4 1
@@ -33,6 +23,8 @@ lbn r3 -1093860567 HASH("R2_GasTank_1") Pressure 3
 blt r3 15000 ABORT_MISSION
 lbn r5 -1125305264 HASH("R2_Bat_1") Ratio 3
 blt r5 0.2 ABORT_MISSION
+lbn r2 1151864003 HASH("R2_ChuteSilo") Ratio 3
+bge r2 1 ABORT_MISSION
 lbn r0 808389066 HASH("R2_Avionics") CurrentCode 3
 bne r0 r1 EXECUTE_FLIGHT
 beq r1 4116 IDLE_MODE

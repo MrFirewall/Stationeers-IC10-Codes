@@ -1,57 +1,51 @@
 define Dish 1913391845
+define Pad -2066405918
+define Dial 554524804
 sb Dish On 1
 ml:
-s db Setting 0
 yield
-lb r15 -2066405918 Mode Maximum
+s db Setting 0
+lb r15 Pad Mode Maximum
 bgt r15 1 ml
-lb r15 554524804 Setting Maximum
-bgtz r15 man
-add r5 r5 1
-mod r5 r5 5
-j set
-man:
+lb r15 Dial Setting Maximum
 sub r5 r15 1
-set:
 move r1 300
-move r2 30
+bltz r5 scan
 ble r5 1 scan
 move r1 220
-move r2 4.5
 beq r5 2 scan
 move r1 250
-move r2 8
 beq r5 3 scan
 move r1 100
-move r2 8
 scan:
-s db Setting 1
 div r15 r1 0.2
 sb Dish Setting r15
 sb Dish BestContactFilter -1
 add r4 r4 10
-mod r4 r4 1620
-mod r15 r4 360
-sb Dish Horizontal r15
-div r15 90 1620
-mul r15 r15 r4
+bge r4 1620 reset
+sb Dish Horizontal r4
+mul r15 r4 0.055555
 sb Dish Vertical r15
+s db Setting 1
+w_mv:
 yield
-wait_idle:
 lb r15 Dish Idle Maximum
-breqz r15 wait_idle
-lb r15 Dish ContactSlotIndex Maximum
+bnez r15 w_mv
+lb r15 Dish SignalID Maximum
+blez r15 scan
+bltz r5 init_aq
+lb r15 Dish ContactTypeId Maximum
 bne r15 r5 scan
+init_aq:
 lb r15 Dish SignalID Maximum
 sb Dish BestContactFilter r15
 sb Dish Setting 50000
-jal resolve
-beqz r1 scan
+jal measure
 move r14 0
 lb r13 Dish Vertical Maximum
 lb r12 Dish Horizontal Maximum
 refine:
-s db Setting 3
+s db Setting 2
 mul r11 deg2rad r14
 sin r10 r11
 mul r10 r10 15.307
@@ -64,10 +58,11 @@ div r10 r9 r10
 mul r10 r10 15.307
 add r10 r10 r12
 sb Dish Horizontal r10
-jal resolve
+jal measure
 add r14 r14 45
 j refine
 lock:
+s db Setting 3
 lb r14 Dish Vertical Maximum
 lb r13 Dish Horizontal Maximum
 brge r14 r15 2
@@ -97,31 +92,26 @@ jal measure
 bgtz r12 lock
 blt r15 r11 lock
 j halign
-resolve:
-s db Setting 2
+measure:
+w_m:
 yield
 lb r15 Dish Idle Maximum
-beqz r15 resolve
-sleep r2
+bnez r15 w_m
 lb r15 Dish SignalID Maximum
-bltz r15 scan
+blez r15 scan
 lb r15 Dish SignalStrength Maximum
-bltz r15 ra
-ble r15 2 acquired
-j lock
-measure:
-yield
-lb r15 Dish SignalID Maximum
-bltz r15 scan
-lb r15 Dish SignalStrength Maximum
-bltz r15 measure
 ble r15 2 acquired
 j ra
 acquired:
 s db Setting 4
+sb Dish Activate 1
+sleep 2
+s db Setting 5
+sb Dish Activate 1
+cloop:
 yield
-lb r15 Dish SignalID Maximum
-bgez r15 acquired
-sb Dish Setting 0
-sleep 30
+lb r15 Pad Mode Maximum
+ble r15 1 cloop
+reset:
+move r4 0
 j ml
