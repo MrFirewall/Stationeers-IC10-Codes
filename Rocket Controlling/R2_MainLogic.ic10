@@ -34,13 +34,14 @@ define MAX_BAT 0.99
 define MIN_GAS 35000
 define MAX_GAS 40000
 define CODE_PAD 4116
+
 LOOP:
 yield
 sb H_LEDDisplay On 1
 lbn rCode H_Avionics N_Avionics CurrentCode 3
 sbn H_LEDDisplay N_LEDDISPLAY_CC Setting rCode
-lb rCode H_Rocket_Miner DrillCondition 2
-sbn H_LEDDisplay N_LEDDISPLAY_DrillCondition Setting rCode
+lb rTemp H_Rocket_Miner DrillCondition 2
+sbn H_LEDDisplay N_LEDDISPLAY_DrillCondition Setting rTemp
 sbn H_LEDDisplay N_LEDDISPLAY_DrillCondition Mode 1
 lbn rAlt H_Avionics N_Avionics Altitude 3
 sne rTemp rCode CODE_PAD
@@ -53,13 +54,13 @@ sbn H_LEDDisplay N_LEDDISPLAY_DC Mode 0
 lbn rValue H_Avionics N_Avionics TimeToDestination 3
 sbn H_LEDDisplay N_LEDDISPLAY_TTD Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_TTD Mode 7
-lbn rValue H_Bat N_Bat_1 Ratio 3
+lbn rValue H_Bat N_Bat_1 Ratio 2
 sbn H_LEDDisplay N_LEDDISPLAY_Battery Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_Battery Mode 1
-lbn rValue H_GasTank N_GasTank Pressure 3
+lbn rValue H_GasTank N_GasTank Pressure 2
 sbn H_LEDDisplay N_LEDDISPLAY_Pressure Setting rValue
 sbn H_LEDDisplay N_LEDDISPLAY_Pressure Mode 14
-bnez rAlt ROCKET_AWAY
+bgt rAlt 0.1 ROCKET_AWAY
 bne rCode CODE_PAD ROCKET_AWAY
 j ROCKET_ON_PAD
 ROCKET_AWAY:
@@ -71,7 +72,7 @@ ROCKET_ON_PAD:
 lbn rValue H_UmbiPower N_UmbiPower On 3
 beq rValue 0 POWER_OFF
 lbn rBatState H_UmbiPower N_UmbiPower Open 0
-lbn rValue H_Bat N_Bat_1 Ratio 1
+lbn rValue H_Bat N_Bat_1 Ratio 2
 slt rTemp rValue MIN_BAT
 or rBatState rBatState rTemp
 sge rTemp rValue MAX_BAT
@@ -85,7 +86,7 @@ CHECK_SPRIT:
 lbn rValue H_UmbiGas N_UmbiGas On 3
 beq rValue 0 SPRIT_OFF
 lbn rGasState H_UmbiGas N_UmbiGas Open 0
-lbn rValue H_GasTank N_GasTank Pressure 1
+lbn rValue H_GasTank N_GasTank Pressure 2
 slt rTemp rValue MIN_GAS
 or rGasState rGasState rTemp
 sge rTemp rValue MAX_GAS
@@ -98,10 +99,14 @@ j CHECK_CHUTE
 CHECK_CHUTE:
 lbn rValue H_UmbiChute N_UmbiChute On 3
 beqz rValue CHUTE_OFF
-lbn rValue H_ChuteSilo N_ChuteSilo Quantity 3
+lbn rValue H_ChuteSilo N_ChuteSilo Ratio 2
 sgt rChuteState rValue 0
 sbn H_UmbiChute N_UmbiChute Open rChuteState
+sbn H_ChuteSilo N_ChuteSilo On rChuteState
+sbn H_ChuteSilo N_ChuteSilo Open rChuteState
 j LOOP
 CHUTE_OFF:
 sbn H_UmbiChute N_UmbiChute Open 0
+sbn H_ChuteSilo N_ChuteSilo On 0
+sbn H_ChuteSilo N_ChuteSilo Open 0
 j LOOP
