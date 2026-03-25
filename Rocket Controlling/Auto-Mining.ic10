@@ -9,12 +9,16 @@ lbn r5 1529453938 HASH("RB2_Umbilical_Power") Open 3
 lbn r2 -1814939203 HASH("RB2_Umbilical_Gas") Open 3
 or r5 r5 r2
 bgtz r5 LOOP
+move r7 2003010116 # Metallic Asteroids
+jal PUSH_SITES
+move r7 2002010116 # Metallic Asteroids
+jal PUSH_SITES
 move r7 20030116 # Metallic Asteroids
 jal PUSH_SITES
 move r7 20040116 # Rocks
 jal PUSH_SITES
-move r7 20020116 # Vapors
-jal PUSH_SITES
+#move r7 20020116 # Vapors
+#jal PUSH_SITES
 pop r1
 move r6 0
 move r4 1
@@ -91,7 +95,11 @@ j LOOP
 PUSH_SITES:
 move r5 0
 PS_LOOP:
-mul r0 r5 1000000
+mul r0 r5 1000000          # 8-stellige gebiete    00-00-00-00-01-01-01-01
+#mul r0 r5 100000000        # 10-stellige gebiete   00-00-00-01-01-01-01-01
+#mul r0 r5 10000000000      # 12-stellige gebiete   00-00-01-01-01-01-01-01
+#mul r0 r5 1000000000000      # 14-stellige gebiete   00-01-01-01-01-01-01-01
+#mul r0 r5 100000000000000      # 16-stellige gebiete   01-01-01-01-01-01-01-01
 add r0 r7 r0
 push r0
 add r5 r5 1

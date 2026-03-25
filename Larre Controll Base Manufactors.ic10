@@ -1,0 +1,119 @@
+alias rItem r0
+alias rCur r1
+alias rTarget r2
+alias rBin r3
+alias rArm r5
+alias rState r6
+alias rReag r7
+define C_H -850484480
+define L_H -1555459562
+define EXP_H 1957571043
+start:
+yield
+s db Setting 0
+move sp 0
+lbns r0 EXP_H HASH("ExportAlloys") 0 Occupied 0
+beqz r0 start
+lbns rItem EXP_H HASH("ExportAlloys") 0 OccupantHash 0
+jal TransHash
+beqz rReag err91
+lr rCur d0 0 rReag
+brge rCur 100 3
+push -1
+push HASH("Autolathe")
+lr rCur d1 0 rReag
+brge rCur 100 3
+push -2
+push HASH("HydraulicPipeBender")
+lr rCur d2 0 rReag
+brge rCur 100 3
+push -3
+push HASH("AdvancedPackagingMachine")
+lr rCur d3 0 rReag
+brge rCur 100 3
+push -4
+push HASH("ElectronicsPrinter")
+lr rCur d4 0 rReag
+brge rCur 100 3
+push -5
+push HASH("ToolManufactory")
+lr rCur d5 0 rReag
+brge rCur 100 3
+push -6
+push HASH("RocketManufactory")
+process:
+blez sp GoHome
+pop rBin
+pop rTarget
+lbns r0 EXP_H HASH("ExportAlloys") 0 Occupied 0
+beqz r0 GoHome
+lbns r0 EXP_H HASH("ExportAlloys") 0 OccupantHash 0
+bne r0 rItem GoHome
+sbn L_H HASH("CargoLarre") Setting 1
+jal WIdle
+sbn L_H HASH("CargoLarre") Activate 1
+jal WIdle
+lbns rArm L_H HASH("CargoLarre") 0 Occupied 0
+beqz rArm err93
+sbn L_H HASH("CargoLarre") Setting rTarget
+jal WIdle
+sbn L_H HASH("CargoLarre") Activate 1 
+#sbn C_H rBin Open 0
+jal WIdle
+beqz rTarget skip
+sbn C_H rBin Open 0
+skip:
+j process
+GoHome:
+sbn L_H HASH("CargoLarre") Setting 0
+j start
+err91:
+s db Setting 91
+j start
+err93:
+s db Setting 93
+j start
+WIdle:
+sleep 1
+WLoop:
+yield
+lbn rState L_H HASH("CargoLarre") Idle 0
+beqz rState WLoop
+j ra
+TransHash:
+move rReag 0
+brne rItem -1301215609 2 
+move rReag -666742878
+brne rItem HASH("ItemCopperIngot") 2
+move rReag HASH("Copper")
+brne rItem HASH("ItemGoldIngot") 2
+move rReag HASH("Gold")
+brne rItem HASH("ItemLeadIngot") 2
+move rReag HASH("Lead")
+brne rItem HASH("ItemNickelIngot") 2
+move rReag HASH("Nickel")
+brne rItem HASH("ItemSilicon") 2
+move rReag HASH("Silicon")
+brne rItem HASH("ItemSilverIngot") 2
+move rReag HASH("Silver")
+brne rItem HASH("ItemSteelIngot") 2
+move rReag HASH("Steel")
+brne rItem HASH("ItemElectrumIngot") 2
+move rReag HASH("Electrum")
+brne rItem HASH("ItemSolderIngot") 2
+move rReag HASH("Solder")
+brne rItem HASH("ItemInvarIngot") 2
+move rReag HASH("Invar")
+brne rItem HASH("ItemConstantanIngot") 2
+move rReag HASH("Constantan")
+brne rItem HASH("ItemWaspaloyIngot") 2
+move rReag HASH("Waspaloy")
+brne rItem HASH("ItemStelliteIngot") 2
+move rReag HASH("Stellite")
+brne rItem HASH("ItemInconelIngot") 2
+move rReag HASH("Inconel")
+brne rItem HASH("ItemHastelloyIngot") 2
+move rReag HASH("Hastelloy")
+brne rItem HASH("ItemAstroloyIngot") 2
+move rReag HASH("Astroloy")
+j ra

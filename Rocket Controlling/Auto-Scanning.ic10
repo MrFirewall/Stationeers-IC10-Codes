@@ -110,7 +110,11 @@ j LOOP
 PUSH_SITES:
 move r5 0
 PS_LOOP:
-mul r0 r5 1000000
+#mul r0 r5 1000000          # 8-stellige gebiete    00-00-00-00-01-01-01-01
+mul r0 r5 100000000        # 10-stellige gebiete   00-00-00-01-01-01-01-01
+#mul r0 r5 10000000000      # 12-stellige gebiete   00-00-01-01-01-01-01-01
+#mul r0 r5 1000000000000      # 14-stellige gebiete   00-01-01-01-01-01-01-01
+#mul r0 r5 100000000000000      # 16-stellige gebiete   01-01-01-01-01-01-01-01
 add r0 r7 r0
 push r0
 add r5 r5 1
