@@ -1,8 +1,63 @@
-loop:
+# Hashes & Namen
+define ActiveVentHash -785498334
+define KuehlerHash -1369060582
+define SensorHash -1252983604
+define SensorName HASH("RaumSensorRocket")
+define ZuluftRocketName HASH("ZuluftRocket")
+define AbluftRocketName HASH("AbluftRocket")
+define KuehlerName HASH("HausKuehler")
+
+# Konstanten
+define ZielDruck 101
+define MaxDruck 102
+define MinDruck 100
+define MaxCO2 0.01
+define MaxTemp 295.15 # 22C Raumtemperatur
+
+# ==========================================
+# HAUPTSCHLEIFE
+# ==========================================
+Main:
+yield
 lb r0 322782515 Activate 3
-seqz r0 0
 sb 555215790 On r0
 lb r1 1220484876 Open 3
 sbn 2104106366 HASH("RB1_FuelMixer") On r1
-yield
-j loop
+
+# 1. Daten vom Raumsensor lesen
+lbn r2 SensorHash SensorName Pressure 3 # r2 = Druck
+lbn r3 SensorHash SensorName RatioCarbonDioxide 3# r3 = CO2
+lbn r4 SensorHash SensorName RatioPollutant 3 # r4 = Pollutant
+lbn r5 SensorHash SensorName RatioHydrogen 3 # r5 = Hydrogen
+lbn r6 SensorHash SensorName RatioMethane 3 # r6 = Methan
+lbn r7 SensorHash SensorName RatioNitrousOxide 3 # r7 = Lachgas
+lbn r8 SensorHash SensorName Temperature 3 # r8 = Temperatur
+
+# 2. Raum-Temperatur regeln (Gefixt: r8 statt r6)
+sgt r10 r8 MaxTemp
+sbn KuehlerHash KuehlerName On r10
+
+# 3. Entlüftung prüfen (Gefixt: Richtige Register abgefragt)
+move r10 0 # Standardmäßig bleibt die Abluft AUS
+
+bgt r2 MaxDruck VentCheck # Überdruck-Schutz (Druck > 102)
+bgt r4 0 VentCheck # Pollutant vorhanden
+bgt r5 0 VentCheck # Hydrogen vorhanden
+bgt r6 0 VentCheck # Methane vorhanden
+bgt r7 0 VentCheck # Nitrous Oxide vorhanden
+bgt r3 MaxCO2 VentCheck # CO2 zu hoch
+
+j PressureCheck
+
+VentCheck:
+move r10 1 # Abluft AN, da ein Grenzwert überschritten wurde
+
+PressureCheck:
+# Abluft steuern
+sbn ActiveVentHash AbluftRocketName Mode 1 # Mode 1 (Inward) zieht Luft aus dem Raum
+sbn ActiveVentHash AbluftRocketName On r10
+slt r11 r2 ZielDruck
+sbn ActiveVentHash ZuluftRocketName Mode 0 # Mode 0 (Outward) bläst in den Raum
+sbn ActiveVentHash ZuluftRocketName On r11
+
+j Main
