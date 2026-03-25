@@ -1,0 +1,128 @@
+Reset:
+move sp 0
+move r0 1
+Main:
+yield
+s db Setting r0
+jal GetH
+move r12 0
+move r4 1
+lr r3 d0 0 r1
+jal ChkM
+move r4 2
+lr r3 d1 0 r1
+jal ChkM
+move r4 4
+lr r3 d3 0 r1
+jal ChkM
+move r4 5
+lr r3 d4 0 r1
+jal ChkM
+move r4 6
+lr r3 d5 0 r1
+jal ChkM
+add r0 r0 1
+ble r0 17 Main
+Process:
+blez sp Reset
+pop r2
+pop r10
+pop r6
+sbn -443130773 r6 RequestHash r2
+s db Setting r10
+Wait:
+yield 
+l r3 db Setting
+bgtz r3 Wait
+j Process
+ChkM:
+beq r12 -1 G_R
+bge r3 100 G_R
+move r11 ra
+move r6 HASH("Ba_Ingots_Vending")
+add r10 r4 130
+ble r0 7 RunS
+move r6 HASH("Al_Ingots_Vending")
+add r10 r4 120
+ble r0 12 RunS
+move r6 HASH("SuAl_Ingots_Vending")
+add r10 r4 110
+RunS:
+jal C_V
+move r12 -1
+j r11
+C_V:
+lbn r15 -443130773 r6 Quantity 0
+blez r15 G_R
+move r8 2
+S_L:
+mod r15 r8 20
+brne r15 0 2
+yield 
+lbns r3 -443130773 r6 r8 Occupied 0
+beqz r3 S_Skip
+lbns r9 -443130773 r6 r8 OccupantHash 0
+seq r7 r9 r2
+bnez r7 DoPush
+S_Skip:
+add r8 r8 1
+ble r8 101 S_L
+j ra
+DoPush:
+push r6
+push r10
+push r2
+j r11
+GetH:
+move r1 HASH("Iron")
+move r2 HASH("ItemIronIngot")
+beq r0 1 G_R
+move r1 HASH("Copper")
+move r2 HASH("ItemCopperIngot")
+beq r0 2 G_R
+move r1 HASH("Gold")
+move r2 HASH("ItemGoldIngot")
+beq r0 3 G_R
+move r1 HASH("Lead")
+move r2 HASH("ItemLeadIngot")
+beq r0 4 G_R
+move r1 HASH("Nickel")
+move r2 HASH("ItemNickelIngot")
+beq r0 5 G_R
+move r1 HASH("Silicon")
+move r2 HASH("ItemSilicon")
+beq r0 6 G_R
+move r1 HASH("Silver")
+move r2 HASH("ItemSilverIngot")
+beq r0 7 G_R
+move r1 HASH("Steel")
+move r2 HASH("ItemSteelIngot")
+beq r0 8 G_R
+move r1 HASH("Electrum")
+move r2 HASH("ItemElectrumIngot")
+beq r0 9 G_R
+move r1 HASH("Solder")
+move r2 HASH("ItemSolderIngot")
+beq r0 10 G_R
+move r1 HASH("Invar")
+move r2 HASH("ItemInvarIngot")
+beq r0 11 G_R
+move r1 HASH("Constantan")
+move r2 HASH("ItemConstantanIngot")
+beq r0 12 G_R
+move r1 HASH("Waspaloy")
+move r2 HASH("ItemWaspaloyIngot")
+beq r0 13 G_R
+move r1 HASH("Stellite")
+move r2 HASH("ItemStelliteIngot")
+beq r0 14 G_R
+move r1 HASH("Inconel")
+move r2 HASH("ItemInconelIngot")
+beq r0 15 G_R
+move r1 HASH("Hastelloy")
+move r2 HASH("ItemHastelloyIngot")
+beq r0 16 G_R
+move r1 HASH("Astroloy")
+move r2 HASH("ItemAstroloyIngot")
+G_R:
+j ra

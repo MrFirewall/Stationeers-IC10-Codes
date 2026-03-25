@@ -1,0 +1,90 @@
+alias rPack r0
+alias rVend r1
+alias rTarget r2
+alias rArm r3
+alias rState r4
+alias rBin r5        
+
+define C_H -850484480
+define L_H -1555459562
+
+Start:
+s db Setting 10
+yield
+l rPack d0 Setting
+
+# NEU: Ignoriere alle Zahlen unter 100 (Unsere Debug-Zahlen 1-17 und die 0)
+blt rPack 100 Start
+
+# NEU: Ziehe die 100 wieder ab, um den Befehl normal zu entpacken
+sub rPack rPack 100
+div rVend rPack 10
+trunc rVend rVend
+mul rTarget rVend 10
+sub rTarget rPack rTarget
+mul rTarget rTarget -1
+
+s db Setting 30
+sbn L_H HASH("CargoLarre") Setting rVend
+jal WIdle
+
+sbn L_H HASH("CargoLarre") Activate 1
+jal WIdle
+
+lbns rArm L_H HASH("CargoLarre") 0 Occupied 0
+beqz rArm Error
+
+s db Setting 40
+sbn L_H HASH("CargoLarre") Setting rTarget
+jal WIdle
+
+sbn L_H HASH("CargoLarre") Activate 1
+jal WIdle
+
+move rBin 0
+beq rTarget -1 Bin1
+beq rTarget -2 Bin2
+beq rTarget -4 Bin4
+beq rTarget -5 Bin5
+beq rTarget -6 Bin6
+j SkipBin
+
+Bin1:
+move rBin HASH("Autolathe")
+j DoBin
+Bin2:
+move rBin HASH("HydraulicPipeBender")
+j DoBin
+Bin4:
+move rBin HASH("ElectronicsPrinter")
+j DoBin
+Bin5:
+move rBin HASH("ToolManufactory")
+j DoBin
+Bin6:
+move rBin HASH("RocketManufactory")
+j DoBin
+
+DoBin:
+sbn C_H rBin Open 0
+
+SkipBin:
+s db Setting 70
+sbn L_H HASH("CargoLarre") Setting 0
+jal WIdle
+s d0 Setting 0
+j Start
+
+Error:
+s db Setting 99
+sleep 2
+s d0 Setting 0
+j Start
+
+WIdle:
+sleep 1
+WLoop:
+yield
+lbn rState L_H HASH("CargoLarre") Idle 0
+beqz rState WLoop
+j ra
