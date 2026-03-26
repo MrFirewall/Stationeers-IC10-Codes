@@ -8,26 +8,18 @@ l r5 d3 Temperature
 l r7 d3 Reagents
 s d4 Setting r6
 
-# --- REPARIERTER SOLL-WERT BLOCK ---
+# --- NEUER BLOCK: ERTRAG IN GRAMM ---
 move r8 0
-beq r0 0 WriteDisp
-move r8 50
-ble r0 7 WriteDisp
-move r8 100
-beq r0 9 WriteDisp
-beq r0 10 WriteDisp
-beq r0 11 WriteDisp
-beq r0 12 WriteDisp
-move r8 200 # <-- Fängt jetzt sauber 8 (Stahl) UND 13 bis 17 ab!
-
+beq r0 0 WriteDisp  # Wenn State 0 (nichts gewählt), bleibt r8 auf 0
+mul r8 r6 50        # Multipliziert Ziffernblatt-Wert (r6) direkt mit 50
+#div r7 r7 50        # Teilt die Reagenzienmenge durch 50, um sie in Gramm anzuzeigen
 WriteDisp:
-mul r8 r8 r6 
 sbn -815193061 HASH("PLED") Setting r4
 sbn -815193061 HASH("PLED") Mode 14
 sbn -815193061 HASH("TLED") Setting r5
 sbn -815193061 HASH("TLED") Mode 3
 sbn -815193061 HASH("IstReagents") Setting r7  
-sbn -815193061 HASH("SollReagents") Setting r8 
+sbn -815193061 HASH("SollReagents") Setting r8
 
 lbn r15 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
 beq r15 1 LockedUI

@@ -1,0 +1,127 @@
+Loop:
+yield
+lbn r15 435685051 HASH("AnalyzerO2") Temperature 0
+slt r15 r15 293.15
+sbn -419758574 HASH("HeizungO2") On r15
+lbn r15 435685051 HASH("AnalyzerVOL") Temperature 0
+slt r15 r15 293.15
+sbn -419758574 HASH("HeizungVOL") On r15
+lbn r0 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
+beq r0 1 Run
+beq r0 0 ShutDown
+j Loop
+ShutDown:
+s d1 On 0
+s d2 On 0
+s d2 Setting 0
+s d3 On 0
+s d3 Setting 0
+s d0 Activate 0
+s d0 SettingInput 100
+l r15 d0 Temperature
+slt r15 r15 1800
+mul r15 r15 100
+s d0 SettingOutput r15
+l r15 d0 Reagents
+bgt r15 0 Flushs
+s d0 ClearMemory 1
+j Loop
+Flushs:
+s d0 Open 1
+sleep 2
+s d0 Open 0
+j ShutDown
+Run:
+s d0 On 1
+lbn r2 HASH("StructureLogicMemory") HASH("MemMinT") Setting 3
+lbn r3 HASH("StructureLogicMemory") HASH("MemMaxT") Setting 3
+lbn r4 HASH("StructureLogicMemory") HASH("MemMinP") Setting 3
+lbn r5 HASH("StructureLogicMemory") HASH("MemMaxP") Setting 3
+lbn r13 HASH("StructureLogicMemory") HASH("MemHash") Setting 3
+lbn r1 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
+lbn r0 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+max r0 r0 1
+move r9 50
+ble r1 7 CalcMass
+move r9 100
+bge r1 9 CalcMass
+move r9 200
+CalcMass:
+mul r1 r9 r0
+l r7 d0 Temperature
+l r8 d0 Pressure
+s d0 Open 0
+s d0 SettingInput 100
+s d0 Activate 1
+add r10 r2 r3
+div r10 r10 2
+add r11 r4 r5
+div r11 r11 2
+sub r12 r8 r5
+max r12 r12 0
+div r12 r12 20     # Panik-Ventil: 1000 kPa drüber = 50% auf
+sub r14 r7 r10
+max r14 r14 0
+div r14 r14 10     # Kühl-Ventil: 100K zu heiß = 10% auf
+sge r15 r8 r11     # Kühlen nur erlauben, wenn Druck > Ziel-Druck
+mul r14 r14 r15
+add r12 r12 r14
+min r12 r12 100
+s d0 SettingOutput r12
+sub r6 r7 r10
+max r6 r6 0
+div r6 r6 5        # Hitze bekämpfen: 50K zu heiß = 10% Pumpe
+sub r14 r11 r8
+max r14 r14 0
+div r14 r14 50     # Druck aufbauen: 1000 kPa fehlen = 20% Pumpe
+sge r15 r7 r2      
+mul r14 r14 r15    # Druck nur aufbauen, wenn Temp >= MinT
+add r6 r6 r14
+sub r14 r5 r8      # Smooth Sprengschutz (Automatisches Bremsen vor MaxP)
+max r14 r14 0
+div r14 r14 20
+min r6 r6 r14
+min r6 r6 1
+s d3 Setting r6
+sgt r14 r6 0
+s d3 On r14
+sub r6 r10 r7
+max r6 r6 0
+div r6 r6 5        # Kälte bekämpfen: 50K zu kalt = 10% Pumpe
+sub r14 r11 r8
+max r14 r14 0
+div r14 r14 50     # Druck aufbauen: 1000 kPa fehlen = 20% Pumpe
+slt r15 r7 r3
+mul r14 r14 r15    # Druck nur aufbauen, wenn Temp <= MaxT
+add r6 r6 r14
+sub r14 r5 r8      # Smooth Sprengschutz (Automatisches Bremsen vor MaxP)
+max r14 r14 0
+div r14 r14 20
+min r6 r6 r14
+min r6 r6 100
+s d2 Setting r6
+sgt r14 r6 0
+s d2 On r14
+s d1 On r14
+sge r14 r8 r4
+sle r15 r8 r5
+and r14 r14 r15
+sge r15 r7 r2
+and r14 r14 r15
+sle r15 r7 r3
+and r14 r14 r15
+l r15 d0 RecipeHash
+seq r15 r15 r13
+and r14 r14 r15
+l r15 d0 Reagents
+sge r15 r15 r1
+and r14 r14 r15
+ls r15 d0 0 Occupied
+seq r15 r15 0
+and r14 r14 r15
+beq r14 0 Loop
+s d0 Open 1
+sleep 5
+s d0 Open 0
+sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
+j ShutDown

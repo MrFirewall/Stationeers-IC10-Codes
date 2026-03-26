@@ -4,6 +4,7 @@ move r0 1
 Main:
 yield
 s db Setting r0
+sb -1577831321 Setting 100
 jal GetH
 move r12 0
 move r4 1
@@ -28,10 +29,9 @@ blez sp Reset
 pop r2
 pop r10
 pop r6
-sbn -443130773 r6 RequestHash r2
+sbn -1577831321 r6 RequestHash r2
 s db Setting r10
 Wait:
-yield 
 l r3 db Setting
 bgtz r3 Wait
 j Process
@@ -52,16 +52,16 @@ jal C_V
 move r12 -1
 j r11
 C_V:
-lbn r15 -443130773 r6 Quantity 0
+lbn r15 -1577831321 r6 Quantity 0
 blez r15 G_R
 move r8 2
 S_L:
 mod r15 r8 20
 brne r15 0 2
 yield 
-lbns r3 -443130773 r6 r8 Occupied 0
+lbns r3 -1577831321 r6 r8 Occupied 0
 beqz r3 S_Skip
-lbns r9 -443130773 r6 r8 OccupantHash 0
+lbns r9 -1577831321 r6 r8 OccupantHash 0
 seq r7 r9 r2
 bnez r7 DoPush
 S_Skip:
@@ -90,7 +90,7 @@ move r1 HASH("Nickel")
 move r2 HASH("ItemNickelIngot")
 beq r0 5 G_R
 move r1 HASH("Silicon")
-move r2 HASH("ItemSilicon")
+move r2 HASH("ItemSiliconIngot")
 beq r0 6 G_R
 move r1 HASH("Silver")
 move r2 HASH("ItemSilverIngot")

@@ -8,7 +8,7 @@ max r7 r7 1
 move r2 0
 move r3 100000
 move r4 0
-move r5 55000
+move r5 20000
 move r6 100
 move sp 0 # Setzt den Stack sicherheitshalber auf 0 zurück
 beq r1 0 Off
@@ -90,7 +90,6 @@ push HASH("Nickel")
 push r7
 push HASH("Iron")
 push r7
-j Write
 Write:
 sbn HASH("StructureLogicMemory") HASH("MemMinT") Setting r2
 sbn HASH("StructureLogicMemory") HASH("MemMaxT") Setting r3
@@ -99,18 +98,21 @@ sbn HASH("StructureLogicMemory") HASH("MemMaxP") Setting r5
 sbn HASH("StructureLogicMemory") HASH("MemPump") Setting r6
 sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 1
 sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
-j ProcessStack
 ProcessStack:
-beq sp 0 Loop # Wenn der Stapel leer ist, gehe direkt zurück zum Anfang!
-pop r11 
-pop r10 
-Dispense:
+beq sp 0 Loop        # Wenn der Stapel leer ist, zurück zum Hauptloop
+pop r11              # Zielmenge auslesen
+pop r10              # Silo-Hash/ID auslesen
+DispenseStart:
+sbn 1155865682 r10 ClearMemory 1  # Silo-Zähler EINMALIG zu Beginn nullen
+PulseLoop:
+lbn r13 1155865682 r10 ExportCount 0  # Aktuellen Auswurf-Stand prüfen
+sbn -815193061 HASH("SiloExportCount") Setting r13
+bge r13 r11 NextItem                  # Wenn Ist-Menge >= Zielmenge, zum nächsten Item!
+# Wenn noch etwas fehlt: Einmal kurz "pulsen"
 sbn 1155865682 r10 Open 1
-yield
+yield                # EINEN Tick warten (Silo spuckt ein Item aus)
 sbn 1155865682 r10 Open 0
-yield
-yield
-yield 
-sub r11 r11 1
-bgt r11 0 Dispense
-j ProcessStack
+yield                # EINEN Tick warten (Spiel aktualisiert den ExportCount)
+j PulseLoop          # Zurück zur Prüfung
+NextItem:
+j ProcessStack       # Nächstes Item vom Stack holen
