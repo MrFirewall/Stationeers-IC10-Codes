@@ -1,0 +1,96 @@
+alias KaltPress r0
+alias WarmTemp r1
+alias WarmPress r2
+alias VentState r3
+alias CrusherHash r4
+alias IsCold r5
+alias IsHighPress r6
+alias WarmTempC r7
+alias DispenseIce r8
+alias Timer r9
+alias CanDispense r10
+alias CrusherFree r11
+
+define IceHash -1708395413
+define KaltGasAnalyzerName HASH("KaltGasAnalyzer")
+define WarmGasAnalyzerName HASH("WarmGasAnalyzer")
+define WarmGasDigitalesVentilName HASH("WarmGasDigitalesVentil")
+define WarmGasActiveVentName HASH("WarmGasActiveVent")
+define LEDKaltName HASH("LEDKalt")
+define LEDWarmName HASH("LEDWarm")
+
+define KaltGasAnalyzerHash 435685051
+define WarmGasAnalyzerHash 435685051
+define WarmGasDigitalesVentilHash -1280984102
+define WarmGasActiveVentHash 938836756
+define LEDHash -53151617
+
+
+
+loop:
+yield
+# Active Vent dauerhaft auf Outward (Mode 1) und 50 MPa (50000 kPa) stellen
+lb r12 336213101 Activate 3
+seqz r12 r12
+sb 336213101 Activate r12
+sb 336213101 RecipeHash IceHash
+sbn WarmGasActiveVentHash WarmGasActiveVentName PressureExternal 50000
+sbn WarmGasDigitalesVentilHash WarmGasDigitalesVentilName Setting 100
+# --- 1. KaltGas & Vending Machine Logik ---
+lbn KaltPress KaltGasAnalyzerHash KaltGasAnalyzerName Pressure 3
+
+# Prüfen, ob Druck im Kalt-Rohr unter 90 kPa fällt
+slt DispenseIce KaltPress 24.5
+
+# OccupantHash Check am Ice Crusher (Slot 0 = Import) über Pin d1
+ls CrusherHash d1 0 OccupantHash
+seq CrusherFree CrusherHash IceHash # 1, wenn Eis drin ist
+seq CrusherFree CrusherFree 0       # Invertieren: 1, wenn Crusher FREI ist
+
+# Timer herunterzählen, falls aktiv (verhindert Mehrfach-Auswurf in der Fall-Sekunde)
+bgt Timer 0 DecTimer
+
+# Nur auswerfen, wenn Druck < 90 UND der Crusher frei ist
+and CanDispense DispenseIce CrusherFree
+beq CanDispense 0 SkipDispense
+
+# RequestHash an Vending Machine (Pin d0) senden, um 1 Stack Eis auszuwerfen
+s d0 RequestHash IceHash
+move Timer 5 # 5 Ticks Cooldown, damit das Eis Zeit hat, in den Crusher zu fallen
+j SkipDispense
+
+DecTimer:
+sub Timer Timer 1
+
+SkipDispense:
+
+# --- 2. WarmGas & Venting Logik ---
+lbn WarmTemp WarmGasAnalyzerHash WarmGasAnalyzerName Temperature 3
+lbn WarmPress WarmGasAnalyzerHash WarmGasAnalyzerName Pressure 3
+
+# Hitze-Schutz: > 200°C (473.15K)
+sgt VentState WarmTemp 473.15
+
+# Kondensations-Schutz: < 190K UND > 90 kPa
+slt IsCold WarmTemp 190
+sgt IsHighPress WarmPress 90
+and IsCold IsCold IsHighPress
+
+# Ventil und Vent öffnen, wenn es zu heiß ist ODER Kondensationsgefahr besteht
+or VentState VentState IsCold
+
+sbn WarmGasDigitalesVentilHash WarmGasDigitalesVentilName On VentState
+#sbn WarmGasActiveVentHash WarmGasActiveVentName On VentState
+#sbn WarmGasActiveVent2Hash WarmGasActiveVent2Name On VentState
+
+# --- 3. LED Anzeigen ---
+# LED 1 (KaltGas): Zeigt den aktuellen Stickstoff-Druck in kPa an
+sbn LEDHash LEDKaltName Setting KaltPress
+sbn LEDHash LEDKaltName Mode 14
+
+# LED 2 (WarmGas): Zeigt die Temperatur des Abgases in °C an
+sub WarmTempC WarmTemp 273.15
+sbn LEDHash LEDWarmName Setting WarmTempC
+sbn LEDHash LEDWarmName Mode 4
+
+j loop

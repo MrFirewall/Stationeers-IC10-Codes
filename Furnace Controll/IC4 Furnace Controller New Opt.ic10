@@ -81,7 +81,7 @@ sub r14 r5 r8      # Smooth Sprengschutz (Automatisches Bremsen vor MaxP)
 max r14 r14 0
 div r14 r14 20
 min r6 r6 r14
-min r6 r6 1
+min r6 r6 100
 s d3 Setting r6
 sgt r14 r6 0
 s d3 On r14
