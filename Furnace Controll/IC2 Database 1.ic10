@@ -110,7 +110,6 @@ sbn -815193061 HASH("SiloExportCount") Setting r13
 bge r13 r11 NextItem                  # Wenn Ist-Menge >= Zielmenge, zum nächsten Item!
 # Wenn noch etwas fehlt: Einmal kurz "pulsen"
 sbn 1155865682 r10 Open 1
-yield                # EINEN Tick warten (Silo spuckt ein Item aus)
 sbn 1155865682 r10 Open 0
 yield                # EINEN Tick warten (Spiel aktualisiert den ExportCount)
 j PulseLoop          # Zurück zur Prüfung
