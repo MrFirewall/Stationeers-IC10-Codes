@@ -10,6 +10,10 @@ alias DispenseIce r8
 alias Timer r9
 alias CanDispense r10
 alias CrusherFree r11
+alias KaltTemp r13
+alias HeaterState r14
+alias TurnOn r15
+# r12 wird im Skript temporär mehrfach recycelt
 
 define IceHash -1708395413
 define KaltGasAnalyzerName HASH("KaltGasAnalyzer")
@@ -19,38 +23,55 @@ define WarmGasActiveVentName HASH("WarmGasActiveVent")
 define LEDKaltName HASH("LEDKalt")
 define LEDWarmName HASH("LEDWarm")
 
+define Autolathe 336213101
 define KaltGasAnalyzerHash 435685051
 define WarmGasAnalyzerHash 435685051
 define WarmGasDigitalesVentilHash -1280984102
 define WarmGasActiveVentHash 938836756
 define LEDHash -53151617
+define HeaterHash -419758574
 
-
+s d0 Lock 0
+s d1 Setting 0
 
 loop:
 yield
-# Active Vent dauerhaft auf Outward (Mode 1) und 50 MPa (50000 kPa) stellen
-lb r12 336213101 Activate 3
-seqz r12 r12
-sb 336213101 Activate r12
-sb 336213101 RecipeHash IceHash
+lb r12 Autolathe Activate 3
+beq r12 1 SkipLatheStart
+sb Autolathe RecipeHash IceHash
+sb Autolathe Activate 1
+SkipLatheStart:
+
 sbn WarmGasActiveVentHash WarmGasActiveVentName PressureExternal 50000
 sbn WarmGasDigitalesVentilHash WarmGasDigitalesVentilName Setting 100
+
 # --- 1. KaltGas & Vending Machine Logik ---
 lbn KaltPress KaltGasAnalyzerHash KaltGasAnalyzerName Pressure 3
+lbn KaltTemp KaltGasAnalyzerHash KaltGasAnalyzerName Temperature 3
 
-# Prüfen, ob Druck im Kalt-Rohr unter 90 kPa fällt
-slt DispenseIce KaltPress 24.5
+# --- NEU: Hysterese für Rohrheizkörper ---
+slt TurnOn KaltTemp 185 # 1 wenn Temp < 185K (Heizung muss an)
+sgt r12 KaltTemp 195 # 1 wenn Temp > 195K (Heizung muss aus)
+seqz r12 r12 # Invertieren: 0 wenn zu heiß, ansonsten 1
+
+or HeaterState HeaterState TurnOn # Schaltet ein (oder bleibt an)
+and HeaterState HeaterState r12 # Zwingt HeaterState auf 0, wenn r12 = 0 ist
+
+sb HeaterHash On HeaterState # Alle Heizkörper im Netz schalten
+# ----------------------------------------
+
+# Prüfen, ob Druck im Kalt-Rohr unter 30000 kPa (30 MPa) fällt
+slt DispenseIce KaltPress 30000
 
 # OccupantHash Check am Ice Crusher (Slot 0 = Import) über Pin d1
 ls CrusherHash d1 0 OccupantHash
 seq CrusherFree CrusherHash IceHash # 1, wenn Eis drin ist
-seq CrusherFree CrusherFree 0       # Invertieren: 1, wenn Crusher FREI ist
+seq CrusherFree CrusherFree 0 # Invertieren: 1, wenn Crusher FREI ist
 
 # Timer herunterzählen, falls aktiv (verhindert Mehrfach-Auswurf in der Fall-Sekunde)
 bgt Timer 0 DecTimer
 
-# Nur auswerfen, wenn Druck < 90 UND der Crusher frei ist
+# Nur auswerfen, wenn Druck zu niedrig UND der Crusher frei ist
 and CanDispense DispenseIce CrusherFree
 beq CanDispense 0 SkipDispense
 
@@ -68,8 +89,8 @@ SkipDispense:
 lbn WarmTemp WarmGasAnalyzerHash WarmGasAnalyzerName Temperature 3
 lbn WarmPress WarmGasAnalyzerHash WarmGasAnalyzerName Pressure 3
 
-# Hitze-Schutz: > 200°C (473.15K)
-sgt VentState WarmTemp 473.15
+# Kühlen bis 30°C (303.15K) erreicht sind
+sgt VentState WarmTemp 303.15
 
 # Kondensations-Schutz: < 190K UND > 90 kPa
 slt IsCold WarmTemp 190
