@@ -56,7 +56,7 @@ seq CrusherFree CrusherHash 0
 bgt Timer 0 DecTimer
 and CanDispense DispenseIce CrusherFree
 beq CanDispense 0 SkipDispense
-s d0 RequestHash IceHash
+s d0 RequestHash IceHash 
 move Timer 8
 j SkipDispense
 DecTimer:
