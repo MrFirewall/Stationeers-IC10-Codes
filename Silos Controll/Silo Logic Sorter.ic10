@@ -1,125 +1,219 @@
-define SORTER_TYPE 873418029
-define STAPLER_TYPE -2020231820
-define OPCODE 1
-
-sb SORTER_TYPE On 1
-sb STAPLER_TYPE On 1
-
-# 1. IceOxit
-lbn r0 SORTER_TYPE HASH("SorterIceOxit") ReferenceId Maximum
-sll r1 -1805394113 8
-or r1 r1 OPCODE
+define SORTER 873418029
+define STAPLER -2020231820
+define OP 1
+define Iron HASH("Iron")
+define ICON_Iron HASH("ItemIronOre")
+define Gold HASH("Gold")
+define ICON_Gold HASH("ItemGoldOre")
+define Copper HASH("Copper")
+define ICON_Copper HASH("ItemCopperOre")
+define Nickel HASH("Nickel")
+define ICON_Nickel HASH("ItemNickelOre")
+define Silver HASH("Silver")
+define ICON_Silver HASH("ItemSilverOre")
+define Lead HASH("Lead")
+define ICON_Lead HASH("ItemLeadOre")
+define Silicon HASH("Silicon")
+define ICON_Silicon HASH("ItemSiliconOre")
+define Steel HASH("Steel")
+define ICON_Steel HASH("ItemSteelIngot")
+define Uran HASH("Uran")
+define ICON_Uran HASH("ItemUraniumOre")
+define Electrum HASH("Electrum")
+define ICON_Electrum HASH("ItemElectrumIngot")
+define Invar HASH("Invar")
+define ICON_Invar HASH("ItemInvarIngot")
+define Constantan HASH("Constantan")
+define ICON_Constantan HASH("ItemConstantanIngot")
+define Solder HASH("Solder")
+define ICON_Solder HASH("ItemSolderIngot")
+define Astroloy HASH("Astroloy")
+define ICON_Astroloy HASH("ItemAstroloyIngot")
+define Hastelloy HASH("Hastelloy")
+define ICON_Hastelloy HASH("ItemHastelloyIngot")
+define Inconel HASH("Inconel")
+define ICON_Inconel HASH("ItemInconelIngot")
+define Stellite HASH("Stellite")
+define ICON_Stellite HASH("ItemStelliteIngot")
+define Waspaloy HASH("Waspaloy")
+define ICON_Waspaloy HASH("ItemWaspaloyIngot")
+define PIce HASH("PureIce")
+define ICON_PIce HASH("ItemPureIce")
+define PISteam HASH("PureIceSteam")
+define ICON_PISteam HASH("ItemPureIceSteam")
+define PISilanol HASH("PureIceSilanol")
+define ICON_PISilanol HASH("ItemPureIceSilanol")
+define PIPollut HASH("PureIcePollutant")
+define ICON_PIPollut HASH("ItemPureIcePollutant")
+define PIOzone HASH("PureIceOzone")
+define ICON_PIOzone HASH("ItemPureIceOzone")
+define PIOxygen HASH("PureIceOxygen")
+define ICON_PIOxygen HASH("ItemPureIceOxygen")
+define PINitrous HASH("PureIceNitrous")
+define ICON_PINitrous HASH("ItemPureIceNitrous")
+define PINitrogen HASH("PureIceNitrogen")
+define ICON_PINitrogen HASH("ItemPureIceNitrogen")
+define PIVolat HASH("PureIceVolatiles")
+define ICON_PIVolat HASH("ItemPureIceVolatiles")
+define PIHydrogen HASH("PureIceHydrogen")
+define ICON_PIHydrogen HASH("ItemPureIceHydrogen")
+define PIHydrazine HASH("PureIceHydrazine")
+define ICON_PIHydrazine HASH("ItemPureIceHydrazine")
+define Coal HASH("Coal")
+define ICON_Coal HASH("ItemCoalOre")
+sb SORTER On 1
+sb STAPLER Setting 50
+sb STAPLER On 1
+lbn r0 SORTER Iron ReferenceId Maximum
+sll r1 ICON_Iron 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 2. IceFluechtigeStoffe
-lbn r0 SORTER_TYPE HASH("SorterIceFluechtigeStoffe") ReferenceId Maximum
-sll r1 1253102035 8
-or r1 r1 OPCODE
+lbn r0 SORTER Gold ReferenceId Maximum
+sll r1 ICON_Gold 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 3. IceNitrit
-lbn r0 SORTER_TYPE HASH("SorterIceNitrit") ReferenceId Maximum
-sll r1 -1499471529 8
-or r1 r1 OPCODE
+lbn r0 SORTER Copper ReferenceId Maximum
+sll r1 ICON_Copper 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 4. EISEN
-lbn r0 SORTER_TYPE HASH("SorterIron") ReferenceId Maximum
-sll r1 1758427767 8
-or r1 r1 OPCODE
+lbn r0 SORTER Nickel ReferenceId Maximum
+sll r1 ICON_Nickel 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 5. KUPFER
-lbn r0 SORTER_TYPE HASH("SorterCopper") ReferenceId Maximum
-sll r1 -707307845 8
-or r1 r1 OPCODE
+lbn r0 SORTER Silver ReferenceId Maximum
+sll r1 ICON_Silver 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 6. GOLD
-lbn r0 SORTER_TYPE HASH("SorterGold") ReferenceId Maximum
-sll r1 -1348105509 8
-or r1 r1 OPCODE
+lbn r0 SORTER Lead ReferenceId Maximum
+sll r1 ICON_Lead 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 7. SILIZIUM
-lbn r0 SORTER_TYPE HASH("SorterSilicon") ReferenceId Maximum
-sll r1 1103972403 8
-or r1 r1 OPCODE
+lbn r0 SORTER Silicon ReferenceId Maximum
+sll r1 ICON_Silicon 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 8. KOHLE
-lbn r0 SORTER_TYPE HASH("SorterCoal") ReferenceId Maximum
-sll r1 1724793494 8
-or r1 r1 OPCODE
+lbn r0 SORTER Steel ReferenceId Maximum
+sll r1 ICON_Steel 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 9. BLEI
-lbn r0 SORTER_TYPE HASH("SorterLead") ReferenceId Maximum
-sll r1 -190236170 8
-or r1 r1 OPCODE
+lbn r0 SORTER Uran ReferenceId Maximum
+sll r1 ICON_Uran 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 10. NICKEL
-lbn r0 SORTER_TYPE HASH("SorterNickel") ReferenceId Maximum
-sll r1 1830218956 8
-or r1 r1 OPCODE
+lbn r0 SORTER Electrum ReferenceId Maximum
+sll r1 ICON_Electrum 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 11. SILBER
-lbn r0 SORTER_TYPE HASH("SorterSilver") ReferenceId Maximum
-sll r1 -916518678 8
-or r1 r1 OPCODE
+lbn r0 SORTER Invar ReferenceId Maximum
+sll r1 ICON_Invar 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 12. KOBALT
-lbn r0 SORTER_TYPE HASH("SorterCobalt") ReferenceId Maximum
-sll r1 -983091249 8
-or r1 r1 OPCODE
+lbn r0 SORTER Constantan ReferenceId Maximum
+sll r1 ICON_Constantan 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 13. URAN
-lbn r0 SORTER_TYPE HASH("SorterUranium") ReferenceId Maximum
-sll r1 -1516581844 8
-or r1 r1 OPCODE
+lbn r0 SORTER Solder ReferenceId Maximum
+sll r1 ICON_Solder 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 14. IceWater
-lbn r0 SORTER_TYPE HASH("SorterIceWater") ReferenceId Maximum
-sll r1 1217489948 8
-or r1 r1 OPCODE
+lbn r0 SORTER Astroloy ReferenceId Maximum
+sll r1 ICON_Astroloy 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 15. Steel
-lbn r0 SORTER_TYPE HASH("SorterSteel") ReferenceId Maximum
-sll r1 -654790771 8
-or r1 r1 OPCODE
+lbn r0 SORTER Hastelloy ReferenceId Maximum
+sll r1 ICON_Hastelloy 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 16. Elec
-lbn r0 SORTER_TYPE HASH("SorterElec") ReferenceId Maximum
-sll r1 502280180 8
-or r1 r1 OPCODE
+lbn r0 SORTER Inconel ReferenceId Maximum
+sll r1 ICON_Inconel 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 17. Inv
-lbn r0 SORTER_TYPE HASH("SorterInv") ReferenceId Maximum
-sll r1 -297990285 8
-or r1 r1 OPCODE
+lbn r0 SORTER Stellite ReferenceId Maximum
+sll r1 ICON_Stellite 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 18. Const
-lbn r0 SORTER_TYPE HASH("SorterConst") ReferenceId Maximum
-sll r1 1058547521 8
-or r1 r1 OPCODE
+lbn r0 SORTER Waspaloy ReferenceId Maximum
+sll r1 ICON_Waspaloy 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-# 19. Sold
-lbn r0 SORTER_TYPE HASH("SorterSold") ReferenceId Maximum
-sll r1 -82508479 8
-or r1 r1 OPCODE
+lbn r0 SORTER PIce ReferenceId Maximum
+sll r1 ICON_PIce 8
+or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-
+lbn r0 SORTER PISteam ReferenceId Maximum
+sll r1 ICON_PISteam 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PISilanol ReferenceId Maximum
+sll r1 ICON_PISilanol 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PIPollut ReferenceId Maximum
+sll r1 ICON_PIPollut 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PIOzone ReferenceId Maximum
+sll r1 ICON_PIOzone 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PIOxygen ReferenceId Maximum
+sll r1 ICON_PIOxygen 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PINitrous ReferenceId Maximum
+sll r1 ICON_PINitrous 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PINitrogen ReferenceId Maximum
+sll r1 ICON_PINitrogen 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PIVolat ReferenceId Maximum
+sll r1 ICON_PIVolat 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PIHydrogen ReferenceId Maximum
+sll r1 ICON_PIHydrogen 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER PIHydrazine ReferenceId Maximum
+sll r1 ICON_PIHydrazine 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
+lbn r0 SORTER Coal ReferenceId Maximum
+sll r1 ICON_Coal 8
+or r1 r1 OP
+put r0 0 r1
+s r0 Mode 1
 done:
 yield
 j done

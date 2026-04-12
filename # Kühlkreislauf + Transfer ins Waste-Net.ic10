@@ -1,0 +1,30 @@
+# Kuehlkreislauf + Transfer ins Waste-Netz + Ofen-Steuerung
+define TEMP_MAX 293
+define TEMP_MIN 278
+define PUMP_VOL 100
+define furnace 545937711
+define furnace_name HASH("ice_furnace")
+define analyzer 435685051
+define analyzer_name HASH("ice_analyzer")
+define valve -1280984102
+define valve_name HASH("ice_valve")
+define pump 1310794736
+define pump_name HASH("ice_pump")
+
+start:
+sbn furnace furnace_name Activate 1  # Ofen immer aktiv halten
+lbn r0 analyzer analyzer_name Temperature 3
+bgt r0 TEMP_MAX kuehlOn
+blt r0 TEMP_MIN transferOn
+j start
+
+kuehlOn:
+sbn valve valve_name On 1
+sbn pump pump_name On 0
+j start
+
+transferOn:
+sbn valve valve_name On 0
+sbn pump pump_name Setting PUMP_VOL
+sbn pump pump_name On 1
+j start

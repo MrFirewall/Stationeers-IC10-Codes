@@ -1,13 +1,12 @@
-# --- KONFIGURATION ---
 define MIN_PRES 0.0001
 define DELAY_TIME 30
-define MAX_TEMP 323.15 # 50 Grad (Sicherheitsabschaltung bei reiner Hitze)
-# --- GERÄTE-TYPEN (Hashes) ---
-define TypeFilter -348054045 # StructureFiltration
-define TypeTurbo 1310794736 # StructureTurboVolumePump
-define TypeHeater -419758574 # StructurePipeHeater
-# --- ALIASES ---
-alias Sensor d0
+define MAX_TEMP 323.15
+define HYST 2 # Hysterese ±2 Kelvin
+define TypeFilter -348054045
+define TypeTurbo 1310794736
+define TypeHeater -419758574
+define TypeAnalyzer 435685051
+define NameAnalyzer HASH("waste_analyzer")
 alias Pres r0
 alias Temp r1
 alias Run r2
@@ -18,8 +17,11 @@ alias TempRatio r6
 alias FilterState r7
 Start:
 yield
-l Pres Sensor Pressure
-l Temp Sensor Temperature
+lbns r0 TypeFilter HASH("SauerstoffFiltration") 1 Damage 0
+s db Setting r0
+sb -1949054743 Setting r0
+lbn Pres TypeAnalyzer NameAnalyzer Pressure 3
+lbn Temp TypeAnalyzer NameAnalyzer Temperature 3
 bgt Pres MIN_PRES ResetTimer
 sub Timer Timer 1
 bgt Timer 0 CheckSafety
@@ -31,70 +33,71 @@ move Timer DELAY_TIME
 move Run 1
 CheckSafety:
 move TargetTemp 75
-l TempRatio Sensor RatioCarbonDioxide
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioCarbonDioxide 3
 sgtz TempRatio TempRatio
 mul TempRatio TempRatio 243.15
 max TargetTemp TargetTemp TempRatio
-l TempRatio Sensor RatioNitrousOxide
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioNitrousOxide 3
 sgtz TempRatio TempRatio
 mul TempRatio TempRatio 203.15
 max TargetTemp TargetTemp TempRatio
-l TempRatio Sensor RatioPollutant
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioPollutant 3
 sgtz TempRatio TempRatio
 mul TempRatio TempRatio 143.15
 max TargetTemp TargetTemp TempRatio
-l TempRatio Sensor RatioWater
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioWater 3
 sgtz TempRatio TempRatio
 mul TempRatio TempRatio 278.15
 max TargetTemp TargetTemp TempRatio
-move HeaterState 0
-blt Temp TargetTemp HeatUp
+# Hysterese: sub r8 = TargetTemp - HYST, r9 = TargetTemp + HYST
+sub r8 TargetTemp HYST
+add r9 TargetTemp HYST
+# Heizung AN wenn Temp < TargetTemp - HYST
+blt Temp r8 HeatUp
+# Heizung AUS wenn Temp > TargetTemp + HYST
+bgt Temp r9 HeatDown
+# Dazwischen: HeaterState unverändert lassen (kein Flackern)
 j CheckHot
 HeatUp:
-# Nur Heizen, wenn auch Druck/Gas vorhanden ist
 bgt Pres MIN_PRES SetHeater
 j CheckHot
 SetHeater:
 move HeaterState 1
+j CheckHot
+HeatDown:
+move HeaterState 0
 CheckHot:
 bgt Temp MAX_TEMP TooHot
 j Switch
 TooHot:
-move Run 0 # Alles AUS bei krasser Überhitzung
-move HeaterState 0 # Heizung AUS
+move Run 0
+move HeaterState 0
 j Switch
 Switch:
-# Heizung & Pumpen schalten
 sbn TypeHeater HASH("Heater") On HeaterState
 sbn TypeTurbo HASH("Volumenpumpe0") On Run
-sbn TypeTurbo HASH("Volumenpumpe1_0") On Run
-sbn TypeTurbo HASH("Volumenpumpe2_0") On Run
-sbn TypeTurbo HASH("Volumenpumpe3_0") On Run
-sbn TypeTurbo HASH("Volumenpumpe4_0") On Run
-sbn TypeTurbo HASH("Volumenpumpe5_0") On Run
-sbn TypeTurbo HASH("Volumenpumpe6_0") On Run
 sb TypeTurbo Setting 100
-l TempRatio Sensor RatioOxygen
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioOxygen 3
 sgtz FilterState TempRatio
 and FilterState FilterState Run
 sbn TypeFilter HASH("SauerstoffFiltration") On FilterState
-l TempRatio Sensor RatioCarbonDioxide
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioCarbonDioxide 3
 sgtz FilterState TempRatio
 and FilterState FilterState Run
 sbn TypeFilter HASH("KohlendioxidFiltration") On FilterState
-l TempRatio Sensor RatioNitrogen
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioNitrogen 3
 sgtz FilterState TempRatio
 and FilterState FilterState Run
 sbn TypeFilter HASH("StickstoffFiltration") On FilterState
-l TempRatio Sensor RatioPollutant
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioPollutant 3
 sgtz FilterState TempRatio
 and FilterState FilterState Run
 sbn TypeFilter HASH("SchadstoffeFiltration") On FilterState
-l TempRatio Sensor RatioMethane
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioMethane 3
 sgtz FilterState TempRatio
 and FilterState FilterState Run
 sbn TypeFilter HASH("FluechtigeStoffeFiltration") On FilterState
-l TempRatio Sensor RatioNitrousOxide
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioNitrousOxide 3
 sgtz FilterState TempRatio
 and FilterState FilterState Run
 sbn TypeFilter HASH("DickstoffmonoxidFiltration") On FilterState

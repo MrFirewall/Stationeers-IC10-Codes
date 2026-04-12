@@ -1,38 +1,57 @@
+define Furnace 545937711
+define Furnace_Name HASH("Smeltery_Furnace")
+define FuelMixer 2104106366
+define FuelMixer_Name HASH("Smeltery_FuelMixer")
+define FuelPump 1310794736
+define FuelPump_Name HASH("Smeltery_FuelPump")
+define ColdPump 1310794736
+define ColdPump_Name HASH("Smeltery_ColdPump")
+
 Loop:
 yield
 lbn r15 435685051 HASH("AnalyzerO2") Temperature 0
-slt r15 r15 293.15
-sbn -419758574 HASH("HeizungO2") On r15
+slt r14 r15 292.15
+sge r13 r15 293.15
+lbn r12 -419758574 HASH("HeizungO2") On 0
+sub r12 r12 r13
+max r12 r12 r14
+min r12 r12 1
+sbn -419758574 HASH("HeizungO2") On r12
 lbn r15 435685051 HASH("AnalyzerVOL") Temperature 0
-slt r15 r15 293.15
-sbn -419758574 HASH("HeizungVOL") On r15
+slt r14 r15 292.15
+sge r13 r15 293.15
+lbn r12 -419758574 HASH("HeizungVOL") On 0
+sub r12 r12 r13
+max r12 r12 r14
+min r12 r12 1
+sbn -419758574 HASH("HeizungVOL") On r12
 lbn r0 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
 beq r0 1 Run
 beq r0 0 ShutDown
 j Loop
 ShutDown:
-s d1 On 0
-s d2 On 0
-s d2 Setting 0
-s d3 On 0
-s d3 Setting 0
-s d0 Activate 0
-s d0 SettingInput 100
-l r15 d0 Temperature
+sbn FuelMixer FuelMixer_Name On 0
+sbn FuelPump FuelPump_Name On 0
+sbn FuelPump FuelPump_Name Setting 0
+sbn ColdPump ColdPump_Name On 0
+sbn ColdPump ColdPump_Name Setting 0
+sbn Furnace Furnace_Name Activate 0
+sbn Furnace Furnace_Name SettingInput 100
+lbn r15 Furnace Furnace_Name Temperature 0
 slt r15 r15 1800
 mul r15 r15 100
-s d0 SettingOutput r15
-l r15 d0 Reagents
+sbn Furnace Furnace_Name SettingOutput r15
+lbn r15 Furnace Furnace_Name Reagents 0
 bgt r15 0 Flushs
-s d0 ClearMemory 1
+sbn Furnace Furnace_Name ClearMemory 1
 j Loop
 Flushs:
-s d0 Open 1
+sbn Furnace Furnace_Name Open 1
 sleep 2
-s d0 Open 0
+sbn Furnace Furnace_Name Open 0
 j ShutDown
 Run:
-s d0 On 1
+sbn Furnace Furnace_Name On 1
 lbn r2 HASH("StructureLogicMemory") HASH("MemMinT") Setting 3
 lbn r3 HASH("StructureLogicMemory") HASH("MemMaxT") Setting 3
 lbn r4 HASH("StructureLogicMemory") HASH("MemMinP") Setting 3
@@ -48,61 +67,61 @@ bge r1 9 CalcMass
 move r9 200
 CalcMass:
 mul r1 r9 r0
-l r7 d0 Temperature
-l r8 d0 Pressure
-s d0 Open 0
-s d0 SettingInput 100
-s d0 Activate 1
+lbn r7 Furnace Furnace_Name Temperature 0
+lbn r8 Furnace Furnace_Name Pressure 0
+sbn Furnace Furnace_Name Open 0
+sbn Furnace Furnace_Name SettingInput 100
+sbn Furnace Furnace_Name Activate 1
 add r10 r2 r3
 div r10 r10 2
 add r11 r4 r5
 div r11 r11 2
 sub r12 r8 r5
 max r12 r12 0
-div r12 r12 20     # Panik-Ventil: 1000 kPa drüber = 50% auf
+div r12 r12 20
 sub r14 r7 r10
 max r14 r14 0
-div r14 r14 10     # Kühl-Ventil: 100K zu heiß = 10% auf
-sge r15 r8 r11     # Kühlen nur erlauben, wenn Druck > Ziel-Druck
+div r14 r14 10
+sge r15 r8 r11
 mul r14 r14 r15
 add r12 r12 r14
 min r12 r12 100
-s d0 SettingOutput r12
+sbn Furnace Furnace_Name SettingOutput r12
 sub r6 r7 r10
 max r6 r6 0
-div r6 r6 5        # Hitze bekämpfen: 50K zu heiß = 10% Pumpe
+div r6 r6 5
 sub r14 r11 r8
 max r14 r14 0
-div r14 r14 50     # Druck aufbauen: 1000 kPa fehlen = 20% Pumpe
-sge r15 r7 r2      
-mul r14 r14 r15    # Druck nur aufbauen, wenn Temp >= MinT
+div r14 r14 50
+sge r15 r7 r2
+mul r14 r14 r15
 add r6 r6 r14
-sub r14 r5 r8      # Smooth Sprengschutz (Automatisches Bremsen vor MaxP)
+sub r14 r5 r8
 max r14 r14 0
 div r14 r14 20
 min r6 r6 r14
 min r6 r6 100
-s d3 Setting r6
+sbn ColdPump ColdPump_Name Setting r6
 sgt r14 r6 0
-s d3 On r14
+sbn ColdPump ColdPump_Name On r14
 sub r6 r10 r7
 max r6 r6 0
-div r6 r6 5        # Kälte bekämpfen: 50K zu kalt = 10% Pumpe
+div r6 r6 5
 sub r14 r11 r8
 max r14 r14 0
-div r14 r14 50     # Druck aufbauen: 1000 kPa fehlen = 20% Pumpe
+div r14 r14 50
 slt r15 r7 r3
-mul r14 r14 r15    # Druck nur aufbauen, wenn Temp <= MaxT
+mul r14 r14 r15
 add r6 r6 r14
-sub r14 r5 r8      # Smooth Sprengschutz (Automatisches Bremsen vor MaxP)
+sub r14 r5 r8
 max r14 r14 0
 div r14 r14 20
 min r6 r6 r14
 min r6 r6 100
-s d2 Setting r6
+sbn FuelPump FuelPump_Name Setting r6
 sgt r14 r6 0
-s d2 On r14
-s d1 On r14
+sbn FuelPump FuelPump_Name On r14
+sbn FuelMixer FuelMixer_Name On r14
 sge r14 r8 r4
 sle r15 r8 r5
 and r14 r14 r15
@@ -110,18 +129,18 @@ sge r15 r7 r2
 and r14 r14 r15
 sle r15 r7 r3
 and r14 r14 r15
-l r15 d0 RecipeHash
+lbn r15 Furnace Furnace_Name RecipeHash 3
 seq r15 r15 r13
 and r14 r14 r15
-l r15 d0 Reagents
+lbn r15 Furnace Furnace_Name Reagents 3
 sge r15 r15 r1
 and r14 r14 r15
-ls r15 d0 0 Occupied
+lbns r15 Furnace Furnace_Name 0 Occupied 3
 seq r15 r15 0
 and r14 r14 r15
 beq r14 0 Loop
-s d0 Open 1
+sbn Furnace Furnace_Name Open 1
 sleep 5
-s d0 Open 0
+sbn Furnace Furnace_Name Open 0
 sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
 j ShutDown

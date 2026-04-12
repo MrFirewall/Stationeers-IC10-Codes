@@ -8,9 +8,12 @@ alias Ventil d5
 # Hashes & Namen
 define ActiveVentHash -785498334
 define ActiveVentName HASH("ZuluftFlur")
+define ActiveVentName HASH("AbluftFlur")
 define KuehlerName HASH("HausKuehler")
-define KuehlerHash -1369060582
-define HeizungHash -287495560           # Liquid Pipe Heater
+define WallHeaterName HASH("HausHeizung")
+define WallHeater 24258244
+define KuehlerHash -1369060582 # 
+define HeizungHash -287495560 # Liquid Pipe Heater
 
 define AutoLatheWaterName HASH("AutoLatheWater")
 define AutoLatheHash 336213101
@@ -19,8 +22,8 @@ define AutoLatheHash 336213101
 define ZielDruck 101
 define MinDruck 100
 define MaxCO2 0.05
-define MaxTemp 295.15    # 22C Raumtemperatur
-define MinWasser 278.15  # 5C Ventil-Sperre (Passiv-Schutz)
+define MaxTemp 295.15# 22C Raumtemperatur
+define MinWasser 278.15# 5C Ventil-Sperre (Passiv-Schutz)
 define HeizWasser 275.15 # 2C Not-Heizung (Aktiv-Schutz)
 
 # ==========================================

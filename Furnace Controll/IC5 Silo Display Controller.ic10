@@ -1,4 +1,5 @@
-alias LED d0
+define LED 1311586884
+define LED_NAME ("Light Diode Small")
 Loop:
 yield
 lbn r15 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
@@ -96,11 +97,11 @@ Update:
 sne r14 r7 0 # r14 wird 1, wenn r7 NICHT 0 ist (Fehler)
 mul r14 r14 2
 add r14 r14 2 # 4 = Rot, 2 = Grün
-s LED Color r14
-s LED On 1
-s db Setting r7 # Zeigt das echte Bild an!
+sbn LED LED_NAME Color r14
+sbn LED LED_NAME On 1
+sbn db Setting r7 # Zeigt das echte Bild an!
 j Loop
 Off:
-s LED On 0
+sbn LED LED_NAME On 0
 s db Setting 0
 j Loop

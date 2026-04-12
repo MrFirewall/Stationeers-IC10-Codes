@@ -1,0 +1,91 @@
+# LArRE Controller - Furnace Feeder
+# d0 = IC Housing (Data Network)
+# Station 1 = Export Chute, Station 2 = Ofen, Station 0 = Home
+# Memory: MemTrigger(3), MemCmd(1), MemQty(6)
+
+define MEM HASH("StructureLogicMemory")
+define LARRE -1555459562
+
+Start:
+yield
+lbn r0 MEM HASH("MemTrigger") Setting 3
+beq r0 0 Start
+
+lbn r1 MEM HASH("MemCmd") Setting 3
+lbn r2 MEM HASH("MemQty") Setting 3
+max r2 r2 1
+mul r4 r2 2
+mul r5 r2 3
+move r6 0
+
+beq r1 0 Done
+ble r1 7 SetSingle
+beq r1 8 SetSteel
+ble r1 12 SetDouble
+ble r1 17 SetTriple
+j Done
+
+SetSingle:
+move r6 r2
+j GoFetch
+SetSteel:
+add r6 r2 r5
+j GoFetch
+SetDouble:
+add r6 r2 r2
+j GoFetch
+SetTriple:
+add r6 r2 r4
+add r6 r6 r2
+j GoFetch
+
+GoFetch:
+sbn LARRE HASH("FurnaceLarre") Setting 1
+jal WaitIdle
+sbn LARRE HASH("FurnaceLarre") Mode 1
+sbn LARRE HASH("FurnaceLarre") Activate 1
+move r9 0
+move r10 -1
+
+WaitCollect:
+yield
+lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
+bge r8 r6 CollectDone
+beq r8 r10 Stall
+move r10 r8
+move r9 0
+j WaitCollect
+Stall:
+add r9 r9 1
+blt r9 3 WaitCollect
+
+CollectDone:
+sbn LARRE HASH("FurnaceLarre") Activate 0
+jal WaitIdle
+sbn LARRE HASH("FurnaceLarre") Setting 2
+jal WaitIdle
+sbn LARRE HASH("FurnaceLarre") Mode 0
+sbn LARRE HASH("FurnaceLarre") Activate 1
+jal WaitIdle
+
+WaitEmpty:
+yield
+lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
+bgt r8 0 WaitEmpty
+
+sbn LARRE HASH("FurnaceLarre") Activate 0
+jal WaitIdle
+sbn LARRE HASH("FurnaceLarre") Setting 0
+jal WaitIdle
+
+Done:
+sbn MEM HASH("MemTrigger") Setting 0
+j Start
+
+WaitIdle:
+yield
+WaitLoop:
+yield
+lbn r7 LARRE HASH("FurnaceLarre") Idle 3
+beqz r7 WaitLoop
+j ra
