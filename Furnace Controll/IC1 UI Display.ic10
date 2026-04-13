@@ -8,32 +8,24 @@ lbn r5 545937711 HASH("Smeltery_Furnace") Temperature 3
 lbn r7 545937711 HASH("Smeltery_Furnace") Reagents 3
 sbn -246585138 HASH("Quantity") Setting r6
 
+# --- NEUER BLOCK: ERTRAG IN GRAMM ---
 move r8 0
-beq r0 0 WriteDisp
-mul r8 r6 50
+beq r0 0 WriteDisp  # Wenn State 0 (nichts gewählt), bleibt r8 auf 0
+mul r8 r6 50        # Multipliziert Ziffernblatt-Wert (r6) direkt mit 50
+#div r7 r7 50        # Teilt die Reagenzienmenge durch 50, um sie in Gramm anzuzeigen
 WriteDisp:
-lbn r3 HASH("StructureLogicMemory") HASH("MemMaxP") Setting 3
-beq r3 0 SkipP
-div r9 r4 r3
-SkipP:
-max r9 r9 0
-min r9 r9 1
-lbn r3 HASH("StructureLogicMemory") HASH("MemMaxT") Setting 3
-beq r3 0 SkipT
-div r11 r5 r3
-SkipT:
-max r11 r11 0
-min r11 r11 1
-sbn -1252835556 HASH("PLED") Setting r9
-sbn -1252835556 HASH("TLED") Setting r11
-sbn -2041948072 HASH("IstReagents") Setting r7
+sbn -246585138 HASH("PLED") Mode 14
+sbn -246585138 HASH("PLED") Setting r4
+sbn -246585138 HASH("TLED") Mode 3
+sbn -246585138 HASH("TLED") Setting r5
+sbn -2041948072 HASH("IstReagents") Setting r7  
 sbn -2041948072 HASH("SollReagents") Setting r8
 
 lbn r15 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
 beq r15 1 LockedUI
 
 lbn r1 1462769197 HASH("BtnPrev") Setting 3
-beq r1 1 Prev
+beq r1 1 Prev 
 lbn r1 1462769197 HASH("BtnNext") Setting 3
 beq r1 1 Next
 j SwitchMap
@@ -100,6 +92,7 @@ beq r2 1 Fire
 j Loop
 Fire:
 sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 1
+# --- NEU: Zwingende Warteschleife (Entpreller) ---
 WaitC:
 yield
 l r2 d2 Setting
@@ -114,6 +107,7 @@ sbn HASH("StructureLogicMemory") HASH("MemCmd") Setting 0
 sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
 sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
 sb 1155865682 Open 0
+# --- NEU: Zwingende Warteschleife (Entpreller) ---
 WaitS:
 yield
 l r2 d2 Setting

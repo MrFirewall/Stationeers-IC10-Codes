@@ -1,5 +1,5 @@
-define LED 1311586884
-define LED_NAME ("Light Diode Small")
+define LED 489382030
+define LED_NAME HASH("BtnConf")
 Loop:
 yield
 lbn r15 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
@@ -99,7 +99,7 @@ mul r14 r14 2
 add r14 r14 2 # 4 = Rot, 2 = Grün
 sbn LED LED_NAME Color r14
 sbn LED LED_NAME On 1
-sbn db Setting r7 # Zeigt das echte Bild an!
+s db Setting r7 # Zeigt das echte Bild an!
 j Loop
 Off:
 sbn LED LED_NAME On 0

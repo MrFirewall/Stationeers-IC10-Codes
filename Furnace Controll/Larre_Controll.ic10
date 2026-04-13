@@ -1,23 +1,27 @@
 # LArRE Controller - Furnace Feeder
-# d0 = IC Housing (Data Network)
-# Station 1 = Export Chute, Station 2 = Ofen, Station 0 = Home
-# Memory: MemTrigger(3), MemCmd(1), MemQty(6)
-
 define MEM HASH("StructureLogicMemory")
-define LARRE -1555459562
+define LARRE -522428667
+define Larre_Export 2
+define Larre_Furnace -5
+define Larre_Home 0
 
 Start:
+s db Setting 100
 yield
-lbn r0 MEM HASH("MemTrigger") Setting 3
+lbn r0 MEM HASH("MemStatus") Setting 3
 beq r0 0 Start
-
+# Trigger erkannt - Arm vom Rail holen
+sbn LARRE HASH("FurnaceLarre") Activate 1
+yield
+yield
+yield
+jal WaitIdle
 lbn r1 MEM HASH("MemCmd") Setting 3
 lbn r2 MEM HASH("MemQty") Setting 3
 max r2 r2 1
 mul r4 r2 2
 mul r5 r2 3
 move r6 0
-
 beq r1 0 Done
 ble r1 7 SetSingle
 beq r1 8 SetSteel
@@ -40,7 +44,8 @@ add r6 r6 r2
 j GoFetch
 
 GoFetch:
-sbn LARRE HASH("FurnaceLarre") Setting 1
+s db Setting 200
+sbn LARRE HASH("FurnaceLarre") Setting Larre_Export
 jal WaitIdle
 sbn LARRE HASH("FurnaceLarre") Mode 1
 sbn LARRE HASH("FurnaceLarre") Activate 1
@@ -50,35 +55,78 @@ move r10 -1
 WaitCollect:
 yield
 lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
+add r11 300 r8
+s db Setting r11
 bge r8 r6 CollectDone
 beq r8 r10 Stall
-move r10 r8
 move r9 0
+move r10 r8
 j WaitCollect
+
 Stall:
 add r9 r9 1
+add r11 310 r9
+s db Setting r11
 blt r9 3 WaitCollect
+s db Setting 999
+# Arm einziehen
+sbn LARRE HASH("FurnaceLarre") Activate 0
+yield
+yield
+yield
+sbn LARRE HASH("FurnaceLarre") Activate 1
+yield
+yield
+yield
+jal WaitIdle
+j AbortHome
 
 CollectDone:
+s db Setting 400
 sbn LARRE HASH("FurnaceLarre") Activate 0
+yield
+yield
+yield
+sbn LARRE HASH("FurnaceLarre") Activate 1
+yield
+yield
+yield
 jal WaitIdle
-sbn LARRE HASH("FurnaceLarre") Setting 2
+
+sbn LARRE HASH("FurnaceLarre") Setting Larre_Furnace
 jal WaitIdle
 sbn LARRE HASH("FurnaceLarre") Mode 0
-sbn LARRE HASH("FurnaceLarre") Activate 1
+sbn LARRE HASH("FurnaceLarre") Activate 1  # Arm ausfahren
 jal WaitIdle
+sbn LARRE HASH("FurnaceLarre") Activate 1  # NOCHMAL nach WaitIdle
+s db Setting 500
 
 WaitEmpty:
 yield
 lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
+add r11 500 r8
+s db Setting r11
 bgt r8 0 WaitEmpty
 
-sbn LARRE HASH("FurnaceLarre") Activate 0
+AbortHome:
+s db Setting 600
+sbn LARRE HASH("FurnaceLarre") Setting Larre_Home
 jal WaitIdle
-sbn LARRE HASH("FurnaceLarre") Setting 0
+# Andocken an Home
+sbn LARRE HASH("FurnaceLarre") Activate 1
+yield
+yield
+yield
+jal WaitIdle
+# Arm vom Rail - Schlafposition
+sbn LARRE HASH("FurnaceLarre") Activate 1
+yield
+yield
+yield
 jal WaitIdle
 
 Done:
+s db Setting 700
 sbn MEM HASH("MemTrigger") Setting 0
 j Start
 

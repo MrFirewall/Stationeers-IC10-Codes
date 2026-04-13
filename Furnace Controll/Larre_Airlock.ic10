@@ -1,0 +1,116 @@
+# Airlock Controller - Furnace LArRE
+# r14 = Schleusenatmosphäre: 0=Innen/Vakuum, 1=Außen
+# r15 = State: 0=Idle, 1=AOB_Pump, 2=AIB_Pump, 3=Vorpump_dann_DoorIn, 4=Vorpump_dann_DoorOut
+
+define DOOR    -2131782367
+define VENT    -785498334
+define GAS     -1252983604
+define LARRE   -522428667
+define LARRE_N HASH("FurnaceLarre")
+
+move r14 0
+move r15 0
+sbn DOOR HASH("furnace_larre_arm_door_in") Open 0
+sbn DOOR HASH("furnace_larre_arm_door_out") Open 0
+sbn VENT HASH("furnace_larre_vent_in") On 0
+sbn VENT HASH("furnace_larre_vent_out") On 0
+
+Loop:
+yield
+lbn r2 LARRE LARRE_N Idle 3      # Idle prüfen
+lbn r1 LARRE LARRE_N PositionX 3
+s db Setting r1
+beq r15 0 S0
+beq r15 1 S1
+beq r15 2 S2
+beq r15 3 S3
+beq r15 4 S4
+j Loop
+
+S0:
+beq r2 0 Loop                    # Nicht idle = fährt noch, ignorieren
+beq r1 -1 On_Pos1
+beq r1 -2 On_Pos2
+beq r1 -3 On_Pos3
+beq r1 -4 On_Pos4
+j Loop
+
+# -1: LArRE will raus, Innentür auf
+On_Pos1:
+beq r14 1 Vorpump_DoorIn  # Außen-Atmo drin -> erst pumpen
+sbn DOOR HASH("furnace_larre_arm_door_in") Open 1
+j Loop
+
+# -3: LArRE in Schleuse (AOB), Innentür zu, abpumpen
+On_Pos3:
+sbn DOOR HASH("furnace_larre_arm_door_in") Open 0
+sbn VENT HASH("furnace_larre_vent_in") On 1
+move r15 1
+j Loop
+
+# -4: LArRE will rein, Außentür auf
+On_Pos4:
+beq r14 0 Vorpump_DoorOut  # Innen-Atmo drin -> erst pumpen
+sbn DOOR HASH("furnace_larre_arm_door_out") Open 1
+j Loop
+
+# -2: LArRE in Schleuse (AIB), Außentür zu, abpumpen
+On_Pos2:
+sbn DOOR HASH("furnace_larre_arm_door_out") Open 0
+sbn VENT HASH("furnace_larre_vent_out") On 1
+move r15 2
+j Loop
+
+Vorpump_DoorIn:
+# Schleuse hat Außen-Atmo, pumpen dann Innentür auf
+sbn DOOR HASH("furnace_larre_arm_door_out") Open 0
+sbn VENT HASH("furnace_larre_vent_out") On 1
+move r15 3
+j Loop
+
+Vorpump_DoorOut:
+# Schleuse hat Innen-Atmo, pumpen dann Außentür auf
+sbn DOOR HASH("furnace_larre_arm_door_in") Open 0
+sbn VENT HASH("furnace_larre_vent_in") On 1
+move r15 4
+j Loop
+
+# AOB Pump: vent_in saugt, warte 0kPa, Außentür auf
+S1:
+lbn r0 GAS HASH("furnace_larre_gas_sensor") Pressure 3
+bgt r0 0 Loop
+sbn VENT HASH("furnace_larre_vent_in") On 0
+sbn DOOR HASH("furnace_larre_arm_door_out") Open 1
+move r14 1
+move r15 0
+j Loop
+
+# AIB Pump: vent_out saugt, warte 0kPa, Innentür auf
+S2:
+lbn r0 GAS HASH("furnace_larre_gas_sensor") Pressure 3
+bgt r0 0 Loop
+sbn VENT HASH("furnace_larre_vent_out") On 0
+sbn DOOR HASH("furnace_larre_arm_door_in") Open 1
+move r14 0
+move r15 0
+j Loop
+
+# Vorpump dann Innentür auf (für -1 mit Außen-Atmo)
+S3:
+lbn r0 GAS HASH("furnace_larre_gas_sensor") Pressure 3
+bgt r0 0 Loop
+sbn VENT HASH("furnace_larre_vent_out") On 0
+sbn DOOR HASH("furnace_larre_arm_door_in") Open 1
+move r14 0
+move r15 0
+j Loop
+
+# Vorpump dann Außentür auf (für -4 mit Innen-Atmo)
+S4:
+lbn r0 GAS HASH("furnace_larre_gas_sensor") Pressure 3
+bgt r0 0 Loop
+sbn VENT HASH("furnace_larre_vent_in") On 0
+sbn DOOR HASH("furnace_larre_arm_door_out") Open 1
+move r14 1
+move r15 0
+j Loop

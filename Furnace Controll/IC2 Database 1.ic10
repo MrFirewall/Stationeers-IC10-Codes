@@ -4,9 +4,10 @@ lbn r0 HASH("StructureLogicMemory") HASH("MemTrigger") Setting 3
 beq r0 0 Loop
 lbn r1 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
 lbn r7 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+#sb 1155865682 Open 0 # Sicherstellen, dass der Ofen geschlossen ist, bevor die Werte gelesen werden
 max r7 r7 1
 move r2 0      # MinT default
-move r3 100000 # MaxT default
+move r3 2000 # MaxT default
 move r4 0      # MinP default
 move r5 25000  # MaxP default
 move r6 10     # Pump default
@@ -189,8 +190,8 @@ DispenseStart:
 sbn 1155865682 r10 ClearMemory 1  # Silo-Zähler EINMALIG zu Beginn nullen
 yield
 PulseLoop:
-lbn r13 1155865682 r10 ExportCount 2  # Aktuellen Auswurf-Stand prüfen
-sbn -815193061 HASH("SiloExportCount") Setting r13
+lbn r13 1155865682 r10 ExportCount 1  # Aktuellen Auswurf-Stand prüfen
+sbn -2041948072 HASH("SiloExportCount") Setting r13
 bge r13 r11 NextItem                  # Wenn Ist-Menge >= Zielmenge, zum nächsten Item!
 # Wenn noch etwas fehlt: Einmal kurz "pulsen"
 sbn 1155865682 r10 Open 1
@@ -198,4 +199,5 @@ sbn 1155865682 r10 Open 0
 yield                # EINEN Tick warten (Spiel aktualisiert den ExportCount)
 j PulseLoop          # Zurück zur Prüfung
 NextItem:
+sbn 1155865682 r10 Open 0
 j ProcessStack       # Nächstes Item vom Stack holen
