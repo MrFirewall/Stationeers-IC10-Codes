@@ -1,0 +1,245 @@
+# === IC: UI + Silo-Dispenser (standalone) ===
+# Pins: d5=QtyDial
+define MEM HASH("StructureLogicMemory")
+define SILO 1155865682
+define BTN_SQUARE_HASH 1462769197
+define BTN_ROUND_HASH 489382030
+define NUMPAD_HASH -377257892
+define MEM_CMD HASH("BaseSilo_MemCmd")
+define MEM_HASH HASH("BaseSilo_MemHash")
+define MEM_QTY HASH("BaseSilo_MemQty")
+define MEM_STATUS HASH("BaseSilo_MemStatus")
+define MEM_TRIGGER HASH("BaseSilo_MemTrigger")
+define BTN_NEXT HASH("BaseSilo_BtnNext")
+define BTN_PREV HASH("BaseSilo_BtnPrev")
+define BTN_CONFIRM HASH("BaseSilo_BtnConf")
+define NUMPAD_NAME HASH("BaseSilo_Numpad")
+Loop:
+yield
+lbn r0 MEM MEM_CMD Setting 3
+lbn r6 NUMPAD_HASH NUMPAD_NAME Setting 3
+sbn MEM MEM_QTY Setting r6
+lbn r15 MEM MEM_STATUS Setting 3
+beq r15 1 LockedUI
+lbn r1 BTN_SQUARE_HASH BTN_PREV Setting 3
+beq r1 1 Prev
+lbn r1 BTN_SQUARE_HASH BTN_NEXT Setting 3
+beq r1 1 Next
+j SwitchMap
+
+Prev:
+sub r0 r0 1
+bltz r0 WrapMax
+j Save
+WrapMax:
+move r0 17
+j Save
+
+Next:
+add r0 r0 1
+bgt r0 17 WrapZero
+j Save
+WrapZero:
+move r0 0
+
+Save:
+sbn MEM MEM_CMD Setting r0
+
+SwitchMap:
+beq r0 0 StateStop
+move r1 HASH("ItemIronIngot")
+beq r0 1 Update
+move r1 HASH("ItemGoldIngot")
+beq r0 2 Update
+move r1 HASH("ItemCopperIngot")
+beq r0 3 Update
+move r1 HASH("ItemNickelIngot")
+beq r0 4 Update
+move r1 HASH("ItemSilverIngot")
+beq r0 5 Update
+move r1 HASH("ItemLeadIngot")
+beq r0 6 Update
+move r1 HASH("ItemSiliconIngot")
+beq r0 7 Update
+move r1 HASH("ItemSteelIngot")
+beq r0 8 Update
+move r1 HASH("ItemElectrumIngot")
+beq r0 9 Update
+move r1 HASH("ItemInvarIngot")
+beq r0 10 Update
+move r1 HASH("ItemConstantanIngot")
+beq r0 11 Update
+move r1 HASH("ItemSolderIngot")
+beq r0 12 Update
+move r1 HASH("ItemAstroloyIngot")
+beq r0 13 Update
+move r1 HASH("ItemHastelloyIngot")
+beq r0 14 Update
+move r1 HASH("ItemInconelIngot")
+beq r0 15 Update
+move r1 HASH("ItemStelliteIngot")
+beq r0 16 Update
+move r1 HASH("ItemWaspaloyIngot")
+
+Update:
+sbn MEM MEM_HASH Setting r1
+ChkBtn:
+lbn r2 BTN_ROUND_HASH BTN_CONFIRM Setting 3
+beq r2 1 Fire
+j Loop
+
+Fire:
+sbn MEM MEM_TRIGGER Setting 1
+WaitC:
+yield
+lbn r2 BTN_ROUND_HASH BTN_CONFIRM Setting 3
+beq r2 1 WaitC
+j Dispatch
+
+LockedUI:
+lbn r2 BTN_ROUND_HASH BTN_CONFIRM Setting 3
+beq r2 1 ForceStop
+j Loop
+
+ForceStop:
+sbn MEM MEM_CMD Setting 0
+sbn MEM MEM_STATUS Setting 0
+sbn MEM MEM_TRIGGER Setting 0
+sb SILO Open 0
+WaitS:
+yield
+lbn r2 BTN_ROUND_HASH BTN_CONFIRM Setting 3
+beq r2 1 WaitS
+j Loop
+
+StateStop:
+sbn MEM MEM_STATUS Setting 0
+sbn MEM MEM_TRIGGER Setting 0
+move r1 0
+j Update
+
+# === DISPENSER ===
+Dispatch:
+lbn r1 MEM MEM_CMD Setting 3
+lbn r7 MEM MEM_QTY Setting 3
+max r7 r7 1
+move sp 0
+beq r1 0 Off
+beq r1 1 S_Ir
+beq r1 2 S_Au
+beq r1 3 S_Cu
+beq r1 4 S_Ni
+beq r1 5 S_Ag
+beq r1 6 S_Pb
+beq r1 7 S_Si
+beq r1 8 R_Steel
+beq r1 9 R_Elec
+beq r1 10 R_Inv
+beq r1 11 R_Const
+beq r1 12 R_Sold
+beq r1 13 R_Astro
+beq r1 14 R_Hast
+beq r1 15 R_Inc
+beq r1 16 R_Stell
+beq r1 17 R_Wasp
+j Loop
+
+Off:
+sb SILO Open 0
+sbn MEM MEM_STATUS Setting 0
+sbn MEM MEM_TRIGGER Setting 0
+j Loop
+
+S_Ir:
+push HASH("Iron")
+push r7
+j ProcessStack
+S_Au:
+push HASH("Gold")
+push r7
+j ProcessStack
+S_Cu:
+push HASH("Copper")
+push r7
+j ProcessStack
+S_Ni:
+push HASH("Nickel")
+push r7
+j ProcessStack
+S_Ag:
+push HASH("Silver")
+push r7
+j ProcessStack
+S_Coal:
+push HASH("Coal")
+push r7
+j ProcessStack
+S_Pb:
+push HASH("Lead")
+push r7
+j ProcessStack
+S_Si:
+push HASH("Silicon")
+push r7
+j ProcessStack
+R_Steel:
+push HASH("Steel")
+push r7
+j ProcessStack
+R_Elec:
+push HASH("Electrum")
+push r7
+j ProcessStack
+R_Inv:
+push HASH("Invar")
+push r7
+j ProcessStack
+R_Const:
+push HASH("Constantan")
+push r7
+j ProcessStack
+R_Sold:
+push HASH("Solder")
+push r7
+j ProcessStack
+R_Astro:
+push HASH("Astroloy")
+push r7
+j ProcessStack
+R_Hast:
+push HASH("Hastelloy")
+push r7
+j ProcessStack
+R_Inc:
+push HASH("Inconel")
+push r7
+j ProcessStack
+R_Stell:
+push HASH("Stellite")
+push r7
+j ProcessStack
+R_Wasp:
+push HASH("Waspaloy")
+push r7
+
+ProcessStack:
+beq sp 0 Done
+pop r11
+pop r10
+sbn SILO r10 ClearMemory 1
+yield
+PulseLoop:
+lbn r13 SILO r10 ExportCount 1
+bge r13 r11 NextItem
+sbn SILO r10 Open 1
+sbn SILO r10 Open 0
+yield
+j PulseLoop
+NextItem:
+sbn SILO r10 Open 0
+j ProcessStack
+
+Done:
+sbn MEM MEM_STATUS Setting 0
+sbn MEM MEM_TRIGGER Setting 0
+j Loop

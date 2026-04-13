@@ -123,6 +123,7 @@ sbn MEM Stellite Setting ICON_Stellite
 lbn r0 SILO Waspaloy Quantity Average
 sbn LED Waspaloy Setting r0
 sbn MEM Waspaloy Setting ICON_Waspaloy
+lbn r0 SILO PIce Quantity Average
 sbn LED PIce Setting r0
 sbn MEM PIce Setting ICON_PIce
 lbn r0 SILO PISteam Quantity Average
