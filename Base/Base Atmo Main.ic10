@@ -1,0 +1,55 @@
+# ==========================================
+# GERAETE
+# ==========================================
+define Mixer              2104106366
+define MixerName          HASH("RaumMixer")
+define KWRohrSensor       226055671
+define KWRohrSensorName   HASH("KWRohrSensor")
+define Ventil             -1280984102
+define VentilName         HASH("Ventil")
+define RaumAnalysator     435685051
+define RaumAnalysatorName HASH("RaumAnalysator")
+define HeizungHash        -287495560
+define WallHeaterName     HASH("HausHeizung")
+define AutoLatheHash      336213101
+define AutoLatheWaterName HASH("AutoLatheWater")
+# ==========================================
+# KONSTANTEN
+# ==========================================
+define MinWasser     278.15
+define HeizWasser    275.15
+define MaxRohrDruck  48000
+define MinRohrDruck  35000
+# ==========================================
+# INITIALISIERUNG
+# ==========================================
+sbn AutoLatheHash AutoLatheWaterName RecipeHash -1616308158
+# ==========================================
+# HAUPTSCHLEIFE
+# ==========================================
+Main:
+yield
+# --- 1. Frostschutz Wasser ---
+lbn r0 KWRohrSensor KWRohrSensorName Temperature 0
+sgt r10 r0 MinWasser
+sbn Ventil VentilName On r10
+slt r10 r0 HeizWasser
+sbn HeizungHash WallHeaterName On r10
+# --- 2. AutoLathe: Error-Reset & Sicherstart ---
+lbn r1 AutoLatheHash AutoLatheWaterName Activate 0
+lbn r2 AutoLatheHash AutoLatheWaterName CompletionRatio 0
+beq r2 2 LatheReset
+bgt r1 0 LatheOk
+LatheReset:
+sbn AutoLatheHash AutoLatheWaterName Activate 0
+sbn AutoLatheHash AutoLatheWaterName RecipeHash -1616308158
+LatheOn:
+sbn AutoLatheHash AutoLatheWaterName Activate 1
+LatheOk:
+# --- 3. Mixer: nur wenn Rohr im gueltigen Druckbereich ---
+lbn r3 RaumAnalysator RaumAnalysatorName Pressure 0
+slt r4 r3 MinRohrDruck
+slt r5 r3 MaxRohrDruck
+and r4 r4 r5
+sbn Mixer MixerName On r4
+j Main

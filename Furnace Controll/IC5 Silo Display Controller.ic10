@@ -36,13 +36,11 @@ beq r15 9 ChkSilo
 move r1 HASH("Iron")
 move r2 HASH("Nickel")
 beq r15 10 ChkSilo
-move r1 HASH("IceWater")
 move r2 HASH("Copper")
 move r3 HASH("Nickel")
 beq r15 11 ChkSilo
 move r1 HASH("Lead")
 move r2 HASH("Iron")
-move r3 HASH("IceWater")
 move r6 2
 beq r15 12 ChkSilo
 move r1 HASH("Cobalt")

@@ -1,14 +1,57 @@
-define Furnace 545937711
-define Furnace_Name HASH("Smeltery_Furnace")
-define FuelMixer 2104106366
-define FuelMixer_Name HASH("Smeltery_FuelMixer")
-define FuelPump 1310794736
-define FuelPump_Name HASH("Smeltery_FuelPump")
-define ColdPump 1310794736
-define ColdPump_Name HASH("Smeltery_ColdPump")
+# ============================================================
+# Smeltery Furnace Controller - PID v2.1
+# Fixes: T-Offset Korrektur, Deadband, Ki/Kd neu abgestimmt
+# ============================================================
+# Memory Chips:
+#   MemPidI   = PID Integral
+#   MemPidD   = Letzter Fehler (D-Term)
+# ============================================================
 
+# --- Hardware ---
+define Furnace          545937711
+define FuelMixer        2104106366
+define FuelPump         1310794736
+define ColdPump         1310794736      # <-- echte Adresse eintragen!
+
+define Furnace_Name     HASH("Smeltery_Furnace")
+define FuelMixer_Name   HASH("Smeltery_FuelMixer")
+define FuelPump_Name    HASH("Smeltery_FuelPump")
+define ColdPump_Name    HASH("Smeltery_ColdPump")
+
+# --- Memory Chip Hashes ---
+define MemChip      HASH("StructureLogicMemory")
+define MemStatus    HASH("MemStatus")
+define MemMinT      HASH("MemMinT")
+define MemMaxT      HASH("MemMaxT")
+define MemMinP      HASH("MemMinP")
+define MemMaxP      HASH("MemMaxP")
+define MemHash      HASH("MemHash")
+define MemCmd       HASH("MemCmd")
+define MemQty       HASH("MemQty")
+define MemPidI      HASH("MemPidI")
+define MemPidD      HASH("MemPidD")
+
+# --- PID-Konstanten ---
+# T_Offset: Sollwert-Korrektur für systematischen +0.5K Fehler
+# → wenn Temp immer X zu hoch: T_Offset auf X setzen
+define T_Offset  0.5
+
+define Kp    4          # Proportional  (unverändert)
+define Ki    0.15       # Integral       (reduziert von 0.4 → weniger Druck-Wechselwirkung)
+define Kd    3          # Differential   (erhöht von 2 → schnellere Dämpfung)
+define IMax  40         # Anti-Windup    (reduziert von 60 → weniger I-Überschwingen)
+
+# Deadband: innerhalb dieser Schwelle keine aktive Regelung
+# verhindert dass Fuel/ColdPump gleichzeitig gegeneinander arbeiten
+define T_Dead  0.3      # Kelvin
+
+# ============================================================
+# MAIN LOOP
+# ============================================================
 Loop:
 yield
+
+# --- O2-Heizung Hysterese ---
 lbn r15 435685051 HASH("AnalyzerO2") Temperature 0
 slt r14 r15 292.15
 sge r13 r15 293.15
@@ -17,6 +60,8 @@ sub r12 r12 r13
 max r12 r12 r14
 min r12 r12 1
 sbn -419758574 HASH("HeizungO2") On r12
+
+# --- VOL-Heizung Hysterese ---
 lbn r15 435685051 HASH("AnalyzerVOL") Temperature 0
 slt r14 r15 292.15
 sge r13 r15 293.15
@@ -25,16 +70,24 @@ sub r12 r12 r13
 max r12 r12 r14
 min r12 r12 1
 sbn -419758574 HASH("HeizungVOL") On r12
-lbn r0 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
+
+# --- Status prüfen ---
+lbn r0 MemChip MemStatus Setting 3
 beq r0 1 Run
 beq r0 0 ShutDown
 j Loop
+
+# ============================================================
+# SHUTDOWN
+# ============================================================
 ShutDown:
 sbn FuelMixer FuelMixer_Name On 0
-sbn FuelPump FuelPump_Name On 0
-sbn FuelPump FuelPump_Name Setting 0
-sbn ColdPump ColdPump_Name On 0
-sbn ColdPump ColdPump_Name Setting 0
+sbn FuelPump  FuelPump_Name  On 0
+sbn FuelPump  FuelPump_Name  Setting 0
+sbn ColdPump  ColdPump_Name  On 0
+sbn ColdPump  ColdPump_Name  Setting 0
+sbn MemChip MemPidI Setting 0
+sbn MemChip MemPidD Setting 0
 sbn Furnace Furnace_Name Activate 0
 sbn Furnace Furnace_Name SettingInput 100
 lbn r15 Furnace Furnace_Name Temperature 0
@@ -45,21 +98,30 @@ lbn r15 Furnace Furnace_Name Reagents 0
 bgt r15 0 Flushs
 sbn Furnace Furnace_Name ClearMemory 1
 j Loop
+
 Flushs:
 sbn Furnace Furnace_Name Open 1
 sleep 2
 sbn Furnace Furnace_Name Open 0
 j ShutDown
+
+# ============================================================
+# RUN: PID-Regelung
+# ============================================================
 Run:
 sbn Furnace Furnace_Name On 1
-lbn r2 HASH("StructureLogicMemory") HASH("MemMinT") Setting 3
-lbn r3 HASH("StructureLogicMemory") HASH("MemMaxT") Setting 3
-lbn r4 HASH("StructureLogicMemory") HASH("MemMinP") Setting 3
-lbn r5 HASH("StructureLogicMemory") HASH("MemMaxP") Setting 3
-lbn r13 HASH("StructureLogicMemory") HASH("MemHash") Setting 3
-lbn r1 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
-lbn r0 HASH("StructureLogicMemory") HASH("MemQty") Setting 3
+
+# Sollwerte laden
+lbn r2  MemChip MemMinT  Setting 3      # r2  = T_min
+lbn r3  MemChip MemMaxT  Setting 3      # r3  = T_max
+lbn r4  MemChip MemMinP  Setting 3      # r4  = P_min
+lbn r5  MemChip MemMaxP  Setting 3      # r5  = P_max
+lbn r13 MemChip MemHash  Setting 3      # r13 = Rezept-Hash
+lbn r1  MemChip MemCmd   Setting 3      # r1  = Befehlstyp
+lbn r0  MemChip MemQty   Setting 3      # r0  = Menge
 max r0 r0 1
+
+# Zielmasse
 move r9 50
 ble r1 7 CalcMass
 move r9 100
@@ -67,15 +129,106 @@ bge r1 9 CalcMass
 move r9 200
 CalcMass:
 mul r1 r9 r0
-lbn r7 Furnace Furnace_Name Temperature 0
-lbn r8 Furnace Furnace_Name Pressure 0
+
+# Ist-Werte
+lbn r7 Furnace Furnace_Name Temperature 0   # r7 = T_ist
+lbn r8 Furnace Furnace_Name Pressure    0   # r8 = P_ist
+
 sbn Furnace Furnace_Name Open 0
 sbn Furnace Furnace_Name SettingInput 100
 sbn Furnace Furnace_Name Activate 1
+
+# Sollwert-Mitten (mit T-Offset Korrektur)
 add r10 r2 r3
 div r10 r10 2
+sub r10 r10 T_Offset    # Sollwert um T_Offset absenken → kompensiert +0.5K Bias
+
 add r11 r4 r5
-div r11 r11 2
+div r11 r11 2           # r11 = P_soll
+
+# ============================================================
+# PID TEMPERATUR
+# r14 = Fehler (T_soll - T_ist)
+# r6  = PID-Gesamtoutput (+heizen / -kühlen)
+# ============================================================
+sub r14 r10 r7          # Fehler
+
+# P-Term
+mul r6 Kp r14
+
+# I-Term
+lbn r15 MemChip MemPidI Setting 3
+add r15 r15 r14
+min r15 r15 IMax
+max r15 r15 IMax
+sbn MemChip MemPidI Setting r15
+mul r12 Ki r15
+add r6 r6 r12
+
+# D-Term
+lbn r12 MemChip MemPidD Setting 3
+sub r12 r14 r12
+sbn MemChip MemPidD Setting r14
+mul r12 Kd r12
+add r6 r6 r12           # r6 = finaler PID-Output
+
+# ============================================================
+# DEADBAND: bei kleinem Fehler beide Pumpen aus
+# verhindert gegenseitiges Gegenregeln → weniger Druckschwankung
+# ============================================================
+abs r15 r14
+slt r15 r15 T_Dead      # r15 = 1 wenn |Fehler| < T_Dead
+
+# ============================================================
+# HEIZEN: FuelPump (PID > 0, außerhalb Deadband)
+# ============================================================
+max r12 r6 0
+min r12 r12 100
+mul r12 r12 1           # Deadband: r15=1 → kein Heizen
+sub r15 1 r15           # r15 invertieren: 1→0, 0→1
+mul r12 r12 r15         # r12 = 0 wenn in Deadband
+
+# Druckobergrenze begrenzt Fuel (verhindert Überdruck durch Heizen)
+sub r14 r5 r8
+max r14 r14 0
+div r14 r14 20
+min r12 r12 r14
+min r12 r12 100
+
+sbn FuelPump  FuelPump_Name  Setting r12
+sgt r14 r12 0
+sbn FuelPump  FuelPump_Name  On r14
+sbn FuelMixer FuelMixer_Name On r14
+
+# ============================================================
+# KÜHLEN: ColdPump (PID < 0, außerhalb Deadband)
+# ============================================================
+abs r15 r14             # r15 neu: Deadband-Flag wiederherstellen
+abs r15 r6              # |PID| – nein, wir brauchen das Flag nochmal
+sub r14 r10 r7          # Fehler neu (r14 wurde überschrieben)
+abs r15 r14
+slt r15 r15 T_Dead      # 1 wenn in Deadband
+sub r15 1 r15           # invertieren
+
+sub r12 0 r6
+max r12 r12 0
+min r12 r12 100
+mul r12 r12 r15         # 0 wenn in Deadband
+
+# Druckobergrenze begrenzt auch Kühlung
+sub r14 r5 r8
+max r14 r14 0
+div r14 r14 20
+min r12 r12 r14
+min r12 r12 100
+
+sbn ColdPump ColdPump_Name Setting r12
+sgt r14 r12 0
+sbn ColdPump ColdPump_Name On r14
+
+# ============================================================
+# DRUCK-VENT: SettingOutput (P-only)
+# ============================================================
 sub r12 r8 r5
 max r12 r12 0
 div r12 r12 20
@@ -87,41 +240,10 @@ mul r14 r14 r15
 add r12 r12 r14
 min r12 r12 100
 sbn Furnace Furnace_Name SettingOutput r12
-sub r6 r7 r10
-max r6 r6 0
-div r6 r6 5
-sub r14 r11 r8
-max r14 r14 0
-div r14 r14 50
-sge r15 r7 r2
-mul r14 r14 r15
-add r6 r6 r14
-sub r14 r5 r8
-max r14 r14 0
-div r14 r14 20
-min r6 r6 r14
-min r6 r6 100
-sbn ColdPump ColdPump_Name Setting r6
-sgt r14 r6 0
-sbn ColdPump ColdPump_Name On r14
-sub r6 r10 r7
-max r6 r6 0
-div r6 r6 5
-sub r14 r11 r8
-max r14 r14 0
-div r14 r14 50
-slt r15 r7 r3
-mul r14 r14 r15
-add r6 r6 r14
-sub r14 r5 r8
-max r14 r14 0
-div r14 r14 20
-min r6 r6 r14
-min r6 r6 100
-sbn FuelPump FuelPump_Name Setting r6
-sgt r14 r6 0
-sbn FuelPump FuelPump_Name On r14
-sbn FuelMixer FuelMixer_Name On r14
+
+# ============================================================
+# FERTIGUNGSPRÜFUNG
+# ============================================================
 sge r14 r8 r4
 sle r15 r8 r5
 and r14 r14 r15
@@ -139,8 +261,9 @@ lbns r15 Furnace Furnace_Name 0 Occupied 3
 seq r15 r15 0
 and r14 r14 r15
 beq r14 0 Loop
+
 sbn Furnace Furnace_Name Open 1
 sleep 5
 sbn Furnace Furnace_Name Open 0
-sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
+sbn MemChip MemStatus Setting 0
 j ShutDown

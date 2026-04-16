@@ -7,16 +7,16 @@ define Larre_Furnace -5
 define Larre_Home 0
 
 Start:
-sbn -246585138 HASH("StatusLarre") Setting 100
-lbn r12 LARRE HASH("FurnaceLarre") Quantity 3
-sbn -2041948072 HASH("QuantityLarreLED") Setting r12
 yield
-lbn r0 HASH("StructureCircuitHousing") HASH("Furnace_Database") Setting 3
+lbn r11 LARRE HASH("FurnaceLarre") Quantity 3
+sbn -2041948072 HASH("QuantityLarreLED") Setting r11
+lbns r12 EXPORTCHUTE HASH("LarreExportChute") 0 Quantity 0
+sbn -2041948072 HASH("ExportChute") Setting r12
+sbn -246585138 HASH("StatusLarre") Setting 100
+lbn r0 MEM HASH("MemLarreTrigger") Setting 3
 beq r0 0 Start
-sbn HASH("StructureCircuitHousing") HASH("Furnace_Database") Setting 0
-lbns r8 EXPORTCHUTE HASH("ExportChute") 0 Quantity 0
-sbn -2041948072 HASH("ExportChute") Setting r8
-beqz r8 Start
+lbns r12 EXPORTCHUTE HASH("LarreExportChute") 0 Quantity 0
+beqz r12 Start
 
 ArmDetach:
 sbn LARRE HASH("FurnaceLarre") Activate 1
@@ -112,8 +112,8 @@ ToFurnace:
 sbn -246585138 HASH("StatusLarre") Setting 300
 sbn LARRE HASH("FurnaceLarre") Setting Larre_Furnace
 jal WaitIdle
-# Idle=1 bestätigt, jetzt PositionX prüfen
 WaitAtFurnace:
+yield
 lbn r8 LARRE HASH("FurnaceLarre") PositionX 3
 bne r8 Larre_Furnace WaitAtFurnace
 
@@ -142,9 +142,10 @@ jal WaitIdle
 # ── NOCH WAS IM EXPORT? ───────────────────────────────
 CheckExportEmpty:
 sbn -246585138 HASH("StatusLarre") Setting 600
-lbns r8 EXPORTCHUTE HASH("ExportChute") 0 Quantity 0
-sbn -2041948072 HASH("ExportChute") Setting r8
-bgtz r8 ToExport
+lbns r13 EXPORTCHUTE HASH("LarreExportChute") 0 Quantity 0
+bgtz r13 ToExport
+# Chute leer - jetzt erst Trigger loeschen
+sbn MEM HASH("MemLarreTrigger") Setting 0
 j GoHome
 
 # ── FAHRT NACH HAUSE ──────────────────────────────────
@@ -152,6 +153,7 @@ GoHome:
 sbn -246585138 HASH("StatusLarre") Setting 500
 sbn LARRE HASH("FurnaceLarre") Setting Larre_Home
 jal WaitIdle
+
 # ── ANDOCKEN HOME ─────────────────────────────────────
 ArmDock:
 yield
@@ -160,6 +162,7 @@ bne r8 Larre_Home ArmDock
 sbn -246585138 HASH("StatusLarre") Setting 150
 sbn LARRE HASH("FurnaceLarre") Activate 1
 jal WaitIdle
+
 Done:
 sbn -246585138 HASH("StatusLarre") Setting 700
 j Start
@@ -167,6 +170,10 @@ j Start
 # ── WAIT IDLE ─────────────────────────────────────────
 WaitIdle:
 yield
+lbn r11 LARRE HASH("FurnaceLarre") Quantity 3
+sbn -2041948072 HASH("QuantityLarreLED") Setting r11
+lbns r12 EXPORTCHUTE HASH("LarreExportChute") 0 Quantity 0
+sbn -2041948072 HASH("ExportChute") Setting r12
 WaitLoop:
 yield
 lbn r7 LARRE HASH("FurnaceLarre") Idle 3

@@ -2,9 +2,7 @@ alias KaltPress r0
 alias WarmTemp r1
 alias WarmPress r2
 alias VentState r3
-alias CrusherHash r4
 alias IsCold r5
-alias IsHighPress r6
 alias WarmTempC r7
 alias DispenseIce r8
 alias Timer r9
@@ -14,82 +12,117 @@ alias PumpSetting r12
 alias KaltTemp r13
 alias HeaterState r14
 alias TurnOn r15
+
 define IceHash -1708395413
 define Autolathe 336213101
+define AutolatheName HASH("ColdGasAutolathe")
 define KaltAnalyzerHash 435685051
 define WarmAnalyzerHash 435685051
 define DigVentilHash -1280984102
 define PoweredVentHash 938836756
 define LEDHash -53151617
 define HeaterHash -419758574
+define HeaterName HASH("ColdGasHeater")
 define TurboPumpeHash 1310794736
+define TurboPumpeName HASH("ColdGasTurboPump")
 define KaltAnalyzerName HASH("KaltGasAnalyzer")
 define WarmAnalyzerName HASH("WarmGasAnalyzer")
 define DigVentilName HASH("WarmGasDigitalesVentil")
 define PoweredVentName HASH("WarmGasPoweredVent")
 define LEDKaltName HASH("LEDKalt")
 define LEDWarmName HASH("LEDWarm")
-s d0 Lock 0
-s d1 Setting 0
+define VendingHash -1577831321
+define VendingName HASH("ColdGasVendingMachine")
+define FurnaceHash 545937711
+define FurnaceName HASH("ice_furnace")
+
+# Warmgas Zielbereich
+define WarmHigh 253.15
+define WarmLow 243.15
+
 loop:
 yield
-# Autolathe Eisproduktion
-lb r12 Autolathe Activate 3
-beq r12 1 SkipLathe
-sb Autolathe RecipeHash IceHash
-sb Autolathe Activate 1
+
+# --- Autolathe Eisproduktion ---
+lbn PumpSetting Autolathe AutolatheName Activate 3
+beq PumpSetting 1 SkipLathe
+sbn Autolathe AutolatheName RecipeHash IceHash
+sbn Autolathe AutolatheName Activate 1
 SkipLathe:
-# KaltGas lesen
+
+# --- Sensoren lesen ---
 lbn KaltPress KaltAnalyzerHash KaltAnalyzerName Pressure 3
 lbn KaltTemp KaltAnalyzerHash KaltAnalyzerName Temperature 3
-# Heizung Hysterese 185K-195K
+lbn WarmTemp WarmAnalyzerHash WarmAnalyzerName Temperature 3
+lbn WarmPress WarmAnalyzerHash WarmAnalyzerName Pressure 3
+
+# --- Heizung Kaltgasnetz: Hysterese 185K-195K ---
 slt TurnOn KaltTemp 185
-sgt r12 KaltTemp 195
-seqz r12 r12
+sgt PumpSetting KaltTemp 195
+seqz PumpSetting PumpSetting
 or HeaterState HeaterState TurnOn
-and HeaterState HeaterState r12
-sb HeaterHash On HeaterState
-# Eis dispensieren wenn <35MPa
-slt DispenseIce KaltPress 35000
-ls CrusherHash d1 0 OccupantHash
-seq CrusherFree CrusherHash 0
+and HeaterState HeaterState PumpSetting
+sbn HeaterHash HeaterName On HeaterState
+
+# --- Eis dispensieren wenn KaltPress < 0.5MPa ---
+slt DispenseIce KaltPress 2000
+lbns CrusherFree FurnaceHash FurnaceName 0 OccupantHash 3
+seq CrusherFree CrusherFree 0
 bgt Timer 0 DecTimer
 and CanDispense DispenseIce CrusherFree
 beq CanDispense 0 SkipDispense
-s d0 RequestHash IceHash 
+sbn VendingHash VendingName RequestHash IceHash
 move Timer 8
 j SkipDispense
 DecTimer:
 sub Timer Timer 1
 SkipDispense:
-# WarmGas (130L Puffernetz) lesen
-lbn WarmTemp WarmAnalyzerHash WarmAnalyzerName Temperature 3
-lbn WarmPress WarmAnalyzerHash WarmAnalyzerName Pressure 3
-# TurboPumpe proportional (WarmTemp-293)*0.5, Stop bei KaltPress >45MPa
-sub PumpSetting WarmTemp 293.15
+
+# --- TurboPumpe: Kaltgas ins Warmgasnetz ---
+# Proportional zu WarmTemp - 293K, Minimum 10% solange WarmTemp > WarmHigh
+sub PumpSetting WarmTemp WarmHigh
 mul PumpSetting PumpSetting 0.5
 max PumpSetting PumpSetting 0
 min PumpSetting PumpSetting 100
-slt r12 KaltPress 45000
-mul PumpSetting PumpSetting r12
-sb TurboPumpeHash On r12
-sb TurboPumpeHash Setting PumpSetting
-# Powered Vent: an wenn >293K UND WarmPress >200kPa (Effizienz gesichert >101kPa)
-sgt VentState WarmTemp 293.15
-sgt IsHighPress WarmPress 200
-and VentState VentState IsHighPress
-# Kondensationsschutz: Vent zu bei <190K & >6.3kPa
+# Minimum 10% damit Pumpe nicht einschläft nahe Zieltemperatur
+sgt r4 WarmTemp WarmHigh
+mul r4 r4 100
+max PumpSetting PumpSetting r4
+# Stopp wenn KaltPress < 24MPa oder WarmPress > 48MPa
+sgt r4 KaltPress 1000
+slt r6 WarmPress 48000
+and r4 r4 r6
+mul PumpSetting PumpSetting r4
+sbn TurboPumpeHash TurboPumpeName Setting PumpSetting
+sbn TurboPumpeHash TurboPumpeName On r4
+
+# --- Vent + Digitalventil: Temp-Hysterese + Druck-Hysterese ---
+# Temp: an wenn WarmTemp > WarmHigh, aus wenn WarmTemp < WarmLow
+sgt r4 WarmTemp WarmHigh
+or VentState VentState r4
+slt r4 WarmTemp WarmLow
+seqz r4 r4
+and VentState VentState r4
+# Druck-Hysterese: an wenn WarmPress > 2MPa, aus wenn WarmPress < 200kPa
+sgt r4 WarmPress 10000
+or VentState VentState r4
+sgt r4 WarmPress 200
+and VentState VentState r4
+# Kondensationsschutz: zu wenn WarmTemp < 190K UND WarmPress > 6.3kPa
 slt IsCold WarmTemp 190
-sgt r12 WarmPress 6.3
-and IsCold IsCold r12
-seqz r12 IsCold
-and VentState VentState r12
+sgt r4 WarmPress 6.3
+and IsCold IsCold r4
+seqz r4 IsCold
+and VentState VentState r4
 sbn PoweredVentHash PoweredVentName On VentState
+sbn PoweredVentHash PoweredVentName PressureExternal 0
 sbn DigVentilHash DigVentilName On VentState
-# LEDs
+
+# --- LEDs ---
 sbn LEDHash LEDKaltName Setting KaltPress
 sbn LEDHash LEDKaltName Mode 14
 sub WarmTempC WarmTemp 273.15
 sbn LEDHash LEDWarmName Setting WarmTempC
 sbn LEDHash LEDWarmName Mode 4
+
 j loop

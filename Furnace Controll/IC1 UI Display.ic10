@@ -115,7 +115,7 @@ beq r2 1 Fire
 j Loop
 Fire:
 sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 1
-sbn HASH("StructureCircuitHousing") HASH("Furnace_Database") Setting 1
+sbn HASH("StructureLogicMemory") HASH("MemLarreTrigger") Setting 1
 # --- NEU: Zwingende Warteschleife (Entpreller) ---
 WaitC:
 yield
@@ -138,6 +138,7 @@ lbn r2 BtnConf BtnConfName Setting 3
 beq r2 1 WaitS
 j Loop
 StateStop:
+sbn HASH("StructureLogicMemory") HASH("MemCmd") Setting 0
 sbn HASH("StructureLogicMemory") HASH("MemStatus") Setting 0
 sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 0
 move r1 0
