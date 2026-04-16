@@ -37,8 +37,8 @@ define Stellite HASH("Stellite")
 define ICON_Stellite HASH("ItemStelliteIngot")
 define Waspaloy HASH("Waspaloy")
 define ICON_Waspaloy HASH("ItemWaspaloyIngot")
-define PIce HASH("PureIce")
-define ICON_PIce HASH("ItemPureIce")
+define Cobalt HASH("Cobalt")
+define ICON_Cobalt HASH("ItemCobaltOre")
 define PISteam HASH("PureIceSteam")
 define ICON_PISteam HASH("ItemPureIceSteam")
 define PISilanol HASH("PureIceSilanol")
@@ -154,8 +154,8 @@ sll r1 ICON_Waspaloy 8
 or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1
-lbn r0 SORTER PIce ReferenceId Maximum
-sll r1 ICON_PIce 8
+lbn r0 SORTER Cobalt ReferenceId Maximum
+sll r1 ICON_Cobalt 8
 or r1 r1 OP
 put r0 0 r1
 s r0 Mode 1

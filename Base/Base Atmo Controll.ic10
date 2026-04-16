@@ -1,4 +1,4 @@
-# Gerte-Zuweisung
+# Geraete
 define Sensor -1252983604
 define SensorName HASH("RaumSensor")
 define Mixer 2104106366
@@ -9,95 +9,88 @@ define KWRohrSensor 226055671
 define KWRohrSensorName HASH("KWRohrSensor")
 define Ventil -1280984102
 define VentilName HASH("Ventil")
-
-# Hashes & Namen
+define RaumAnalysator 435685051
+define RaumAnalysatorName HASH("RaumAnalysator")
 define ActiveVentHash -785498334
 define ActiveVentName HASH("ZuluftFlur")
 define KuehlerName HASH("HausKuehler")
 define WallHeaterName HASH("HausHeizung")
 define WallHeater 24258244
 define KuehlerHash -1369060582
-define HeizungHash -287495560 # Liquid Pipe Heater
-
+define HeizungHash -287495560
 define AutoLatheWaterName HASH("AutoLatheWater")
 define AutoLatheHash 336213101
-
 # Konstanten
 define ZielDruck 101
 define MaxCO2 0.05
-define MaxTemp 295.15 # 22C Raumtemperatur
-define MinTemp 293.15 # 20C Raumtemperatur
-define MinWasser 278.15 # 5C Ventil-Sperre (Passiv-Schutz)
-define HeizWasser 275.15 # 2C Not-Heizung (Aktiv-Schutz)
-
+define MaxTemp 295.15
+define MinTemp 293.15
+define MinWasser 278.15
+define HeizWasser 275.15
+define MaxRohrDruck 48000
+define MinRohrDruck 10000
 # ==========================================
 # INITIALISIERUNG
 # ==========================================
 sbn AutoLatheHash AutoLatheWaterName RecipeHash -1616308158
-# Abluft: Inward (1), pumpt solange Raum > 0 kPa
 sbn Abluft AbluftName Mode 1
 sbn Abluft AbluftName PressureExternal 0
-# Zuluft: Outward (0), pumpt bis Raum ZielDruck erreicht
 sbn ActiveVentHash ActiveVentName Mode 0
 sbn ActiveVentHash ActiveVentName PressureExternal 101.325
-
 # ==========================================
 # HAUPTSCHLEIFE
 # ==========================================
 Main:
 yield
-# 1. Daten vom Raumsensor lesen
-lbn r0 Sensor SensorName Pressure 3
-lbn r1 Sensor SensorName RatioCarbonDioxide 3
-lbn r2 Sensor SensorName RatioPollutant 3
-lbn r3 Sensor SensorName RatioHydrogen 3     # Ersatz fuer Volatiles
-lbn r4 Sensor SensorName RatioMethane 3      # Neues brennbares Gas
-lbn r5 Sensor SensorName RatioNitrousOxide 3 # Lachgas (Giftig/Brandfördernd)
-lbn r6 Sensor SensorName Temperature 3       # Raumtemperatur
-
-# 2. Raum-Temperatur regeln
+# 1. Sensordaten lesen
+lbn r0 Sensor SensorName Pressure 0
+lbn r1 Sensor SensorName RatioCarbonDioxide 0
+lbn r2 Sensor SensorName RatioPollutant 0
+lbn r3 Sensor SensorName RatioHydrogen 0
+lbn r4 Sensor SensorName RatioMethane 0
+lbn r5 Sensor SensorName RatioNitrousOxide 0
+lbn r6 Sensor SensorName Temperature 0
+# 2. Raumtemperatur regeln
 sgt r10 r6 MaxTemp
 sbn KuehlerHash KuehlerName On r10
 slt r10 r6 MinTemp
 sbn WallHeater WallHeaterName On r10
-
-# 3. FROSTSCHUTZ für das Wasser
+# 3. Frostschutz Wasser
 lbn r7 KWRohrSensor KWRohrSensorName Temperature 3
-
-# 3a. Ventil steuern (Passiv-Schutz)
 sgt r10 r7 MinWasser
 sbn Ventil VentilName On r10
-
-# 3b. Heizung steuern (Aktiv-Schutz)
 slt r10 r7 HeizWasser
 sb HeizungHash On r10
-
-# 4. AutoLathe Produktion
-lbn r12 AutoLatheHash AutoLatheWaterName Activate Maximum
-bgt r12 0 SkipLathe
+# 4. AutoLathe - laufend prfen & Hnger beheben
+lbn r8 AutoLatheHash AutoLatheWaterName Activate 3     # aktueller Zustand
+lbn r9 AutoLatheHash AutoLatheWaterName CompletionRatio 3 # 0=idle,1=working,2=error
+beq r9 2 LatheReset   # Error-State -> Reset
+bgt r8 0 LatheOk      # luft -> skip
+LatheReset:
+sbn AutoLatheHash AutoLatheWaterName Activate 0 # kurz aus
+sbn AutoLatheHash AutoLatheWaterName RecipeHash -1616308158
+LatheOn:
 sbn AutoLatheHash AutoLatheWaterName Activate 1
-SkipLathe:
-
-# 5. Logik für Gefahrstoffe & CO2 (Abluft-Steuerung)
-# Abluft Mode bleibt immer 1 (Inward), nur On/Off steuern
+LatheOk:
+# 5. Gefahrstoffe & CO2 -> Abluft
 move r10 0
-bgt r2 0 VentCheck      # Pollutant
-bgt r3 0 VentCheck      # Hydrogen
-bgt r4 0 VentCheck      # Methane
-bgt r5 0 VentCheck      # Nitrous Oxide
-bgt r1 MaxCO2 VentCheck # CO2 zu hoch
-bgt r0 102 VentCheck    # Überdruck-Schutz
+bgt r2 0 VentCheck
+bgt r3 0 VentCheck
+bgt r4 0 VentCheck
+bgt r5 0 VentCheck
+bgt r1 MaxCO2 VentCheck
+bgt r0 102 VentCheck
 j PressureCheck
-
 VentCheck:
 move r10 1
-
 PressureCheck:
 sbn Abluft AbluftName On r10
-
-# 6. Logik für Frischgas (Zuluft & Mixer)
-slt r11 r0 ZielDruck
+# 6. Zuluft & Mixer
+lbn r8 RaumAnalysator RaumAnalysatorName Pressure 3
+slt r11 r0 ZielDruck    # Raum braucht Druck
+slt r12 r8 MinRohrDruck         # Rohr unter 1 MPa -> Mixer an
+slt r13 r8 MaxRohrDruck # Rohr unter 48 MPa -> Mixer erlaubt
+and r13 r12 r13         # Mixer an: unter 1 MPa UND unter 48 MPa
 sbn ActiveVentHash ActiveVentName On r11
-sbn Mixer MixerName On r11
-
+sbn Mixer MixerName On r13
 j Main

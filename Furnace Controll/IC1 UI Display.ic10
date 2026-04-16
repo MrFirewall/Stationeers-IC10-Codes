@@ -1,7 +1,23 @@
+define NumpadHash -377257892
+define NumpadName HASH("Numpad")
+define BtnPrev 1462769197
+define BtnNext 1462769197
+define BtnConf 489382030
+define BtnPrevName HASH("BtnPrev")
+define BtnNextName HASH("BtnNext")
+define BtnConfName HASH("BtnConf")
+
 Loop:
 yield
 lbn r0 HASH("StructureLogicMemory") HASH("MemCmd") Setting 3
-l r6 d5 Setting
+lbn r9 HASH("StructureLogicMemory") HASH("MemStatus") Setting 3
+bgt r9 0 sc_r
+sbn 1644427753 HASH("furnace_led_status") Color 2  # Grün
+j sc_done
+sc_r:
+sbn 1644427753 HASH("furnace_led_status") Color 4  # Rot
+sc_done:
+lbn r6 NumpadHash NumpadName Setting 3
 sbn HASH("StructureLogicMemory") HASH("MemQty") Setting r6
 lbn r4 545937711 HASH("Smeltery_Furnace") Pressure 3
 lbn r5 545937711 HASH("Smeltery_Furnace") Temperature 3
@@ -10,10 +26,17 @@ sbn -246585138 HASH("Quantity") Setting r6
 
 # --- NEUER BLOCK: ERTRAG IN GRAMM ---
 move r8 0
-beq r0 0 WriteDisp  # Wenn State 0 (nichts gewählt), bleibt r8 auf 0
-mul r8 r6 50        # Multipliziert Ziffernblatt-Wert (r6) direkt mit 50
-#div r7 r7 50        # Teilt die Reagenzienmenge durch 50, um sie in Gramm anzuzeigen
+beq r0 0 WriteDisp
+move r8 50
+ble r0 7 WriteDisp
+move r8 100
+beq r0 9 WriteDisp
+beq r0 10 WriteDisp
+beq r0 11 WriteDisp
+beq r0 12 WriteDisp
+move r8 200 # <-- Fängt jetzt sauber 8 (Stahl) UND 13 bis 17 ab!
 WriteDisp:
+mul r8 r8 r6 # Ertrag in Gramm
 sbn -246585138 HASH("PLED") Mode 14
 sbn -246585138 HASH("PLED") Setting r4
 sbn -246585138 HASH("TLED") Mode 3
@@ -87,19 +110,20 @@ move r1 HASH("ItemWaspaloyIngot")
 Update:
 sbn HASH("StructureLogicMemory") HASH("MemHash") Setting r1
 ChkBtn:
-l r2 d2 Setting
+lbn r2 BtnConf BtnConfName Setting 3
 beq r2 1 Fire
 j Loop
 Fire:
 sbn HASH("StructureLogicMemory") HASH("MemTrigger") Setting 1
+sbn HASH("StructureCircuitHousing") HASH("Furnace_Database") Setting 1
 # --- NEU: Zwingende Warteschleife (Entpreller) ---
 WaitC:
 yield
-l r2 d2 Setting
+lbn r2 BtnConf BtnConfName Setting 3
 beq r2 1 WaitC
 j Loop
 LockedUI:
-l r2 d2 Setting
+lbn r2 BtnConf BtnConfName Setting 3
 beq r2 1 ForceStop
 j Loop
 ForceStop:
@@ -110,7 +134,7 @@ sb 1155865682 Open 0
 # --- NEU: Zwingende Warteschleife (Entpreller) ---
 WaitS:
 yield
-l r2 d2 Setting
+lbn r2 BtnConf BtnConfName Setting 3
 beq r2 1 WaitS
 j Loop
 StateStop:

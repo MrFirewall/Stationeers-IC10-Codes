@@ -104,4 +104,9 @@ sgtz FilterState TempRatio
 and FilterState FilterState Run
 and FilterState FilterState r8
 sbn TypeFilter HASH("DickstoffmonoxidFiltration") On FilterState
+lbn TempRatio TypeAnalyzer NameAnalyzer RatioHydrogen 3
+sgtz FilterState TempRatio
+and FilterState FilterState Run
+and FilterState FilterState r8
+sbn TypeFilter HASH("HydrogenFiltration") On FilterState
 j Start

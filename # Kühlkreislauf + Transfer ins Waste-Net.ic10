@@ -1,5 +1,5 @@
 # Kuehlkreislauf + Transfer ins Waste-Netz + Ofen-Steuerung
-define TEMP_MAX 293
+define TEMP_MAX 303
 define TEMP_MIN 278
 define PUMP_VOL 100
 define furnace 545937711

@@ -1,0 +1,288 @@
+define TG  -1013553731  # Gauge 2x2 PrefabHash
+define TD  -2041948072  # LED Display 2 PrefabHash
+define TA   435685051   # Analyzer PrefabHash
+define RP   50000       # Referenz Druck kPa
+define RT   973         # Referenz Temp K (Flammpunkt)
+define CG   2           # Farbe Grün
+define CY   5           # Farbe Gelb
+define CR   4           # Farbe Rot
+define MP   14          # LED Mode Druck
+define MT   4           # LED Mode Temperatur
+define BM   0           # batchMode: Durchschnitt
+
+# Tank NameHashes
+define TO2  HASH("GasTankOxygen")
+define TCO2 HASH("GasTankCarbonDioxide")
+define TN2  HASH("GasTankNitrogen")
+define TPol HASH("GasTankPollutant")
+define TCH4 HASH("GasTankMethane")
+define TN2O HASH("GasTankNitrousOxide")
+define TH2  HASH("GasTankHydrogen")
+define TWst HASH("waste_analyzer")
+define TIce HASH("ice_analyzer")
+define TBaseAtmo HASH("RaumAnalysator")
+
+# Gauge NameHashes (p=Druck, t=Temperatur)
+define gO2p  HASH("g_o2_p")
+define gO2t  HASH("g_o2_t")
+define gCO2p HASH("g_co2_p")
+define gCO2t HASH("g_co2_t")
+define gN2p  HASH("g_n2_p")
+define gN2t  HASH("g_n2_t")
+define gPolp HASH("g_pol_p")
+define gPolt HASH("g_pol_t")
+define gCH4p HASH("g_ch4_p")
+define gCH4t HASH("g_ch4_t")
+define gN2Op HASH("g_n2o_p")
+define gN2Ot HASH("g_n2o_t")
+define gH2p  HASH("g_h2_p")
+define gH2t  HASH("g_h2_t")
+define gWstp HASH("g_wst_p")
+define gWstt HASH("g_wst_t")
+define gIcep HASH("g_ice_p")
+define gIcet HASH("g_ice_t")
+define gBaseAtmoP HASH("g_baseatmo_p")
+define gBaseAtmoT HASH("g_baseatmo_t")
+
+# LED NameHashes (p=Druck, t=Temperatur)
+define lO2p  HASH("l_o2_p")
+define lO2t  HASH("l_o2_t")
+define lCO2p HASH("l_co2_p")
+define lCO2t HASH("l_co2_t")
+define lN2p  HASH("l_n2_p")
+define lN2t  HASH("l_n2_t")
+define lPolp HASH("l_pol_p")
+define lPolt HASH("l_pol_t")
+define lCH4p HASH("l_ch4_p")
+define lCH4t HASH("l_ch4_t")
+define lN2Op HASH("l_n2o_p")
+define lN2Ot HASH("l_n2o_t")
+define lH2p  HASH("l_h2_p")
+define lH2t  HASH("l_h2_t")
+define lWstp HASH("l_wst_p")
+define lWstt HASH("l_wst_t")
+define lIcep HASH("l_ice_p")
+define lIcet HASH("l_ice_t")
+define lBaseAtmoP HASH("l_baseatmo_p")
+define lBaseAtmoT HASH("l_baseatmo_t")
+
+j loop
+
+# Subroutine: Farbe berechnen und an Gauge+LED setzen
+# r0 = normierter Wert (0..1), r1 = Gauge NameHash, r2 = LED NameHash
+setcol:
+bgt r0 0.8 sc_r          # >80% -> Rot
+bgt r0 0.5 sc_y          # >50% -> Gelb
+sbn TG r1 Color CG       # <=50% -> Grün
+sbn TD r2 Color CG
+j ra
+sc_r:
+sbn TG r1 Color CR
+sbn TD r2 Color CR
+j ra
+sc_y:
+sbn TG r1 Color CY
+sbn TD r2 Color CY
+j ra
+
+# Subroutine: Temperatur-LED ausgeben (Mode 3=K, 4=°C)
+# r0 = Kelvin-Rohwert, r2 = LED NameHash
+# Ergebnis: r4 = Kelvin (für Gauge-Normierung)
+convtemp:
+move r4 r0               # Kelvin für Gauge merken
+lbn r3 TD r2 Mode BM     # aktuellen LED-Mode lesen
+beq r3 4 ct_cel          # Mode 4 = °C
+sbn TD r2 Setting r0     # Mode 3 = Kelvin direkt
+j ra
+ct_cel:
+sub r0 r0 273.15         # K -> °C
+sbn TD r2 Setting r0     # °C an LED
+j ra
+
+# Init: LED Modi einmalig setzen
+loop:
+sbn TD lO2p  Mode MP     # O2 Druck-LED
+sbn TD lO2t  Mode MT     # O2 Temp-LED
+sbn TD lCO2p Mode MP     # CO2 Druck-LED
+sbn TD lCO2t Mode MT     # CO2 Temp-LED
+sbn TD lN2p  Mode MP     # N2 Druck-LED
+sbn TD lN2t  Mode MT     # N2 Temp-LED
+sbn TD lPolp Mode MP     # Pol Druck-LED
+sbn TD lPolt Mode MT     # Pol Temp-LED
+sbn TD lCH4p Mode MP     # CH4 Druck-LED
+sbn TD lCH4t Mode MT     # CH4 Temp-LED
+sbn TD lN2Op Mode MP     # N2O Druck-LED
+sbn TD lN2Ot Mode MT     # N2O Temp-LED
+sbn TD lH2p  Mode MP     # H2 Druck-LED
+sbn TD lH2t  Mode MT     # H2 Temp-LED
+sbn TD lWstp Mode MP     # Waste Druck-LED
+sbn TD lWstt Mode MT     # Waste Temp-LED
+sbn TD lIcep Mode MP     # Ice Druck-LED
+sbn TD lIcet Mode MT     # Ice Temp-LED
+sbn TD lBaseAtmoP Mode MP # BaseAtmo Druck-LED
+sbn TD lBaseAtmoT Mode MT # BaseAtmo Temp-LED
+
+j main
+
+main:
+# O2
+lbn r0 TA TO2 Pressure BM        # Druck aus O2-Analyzer
+sbn TD lO2p Setting r0            # Rohwert kPa an LED
+div r0 r0 RP                      # auf 0..1 normieren
+sbn TG gO2p Setting r0            # normiert an Gauge
+move r1 gO2p
+move r2 lO2p
+jal setcol                        # Farbe Gauge+LED setzen
+lbn r0 TA TO2 Temperature BM     # Temp aus O2-Analyzer (Kelvin)
+move r2 lO2t
+jal convtemp                      # LED-Ausgabe je nach Mode, r4=Kelvin
+div r4 r4 RT                      # Kelvin normieren
+sbn TG gO2t Setting r4            # normiert an Gauge
+move r1 gO2t
+move r0 r4                        # normierter Wert für Farblogik
+jal setcol                        # Farbe Gauge+LED setzen
+# CO2
+lbn r0 TA TCO2 Pressure BM
+sbn TD lCO2p Setting r0
+div r0 r0 RP
+sbn TG gCO2p Setting r0
+move r1 gCO2p
+move r2 lCO2p
+jal setcol
+lbn r0 TA TCO2 Temperature BM
+move r2 lCO2t
+jal convtemp
+div r4 r4 RT
+sbn TG gCO2t Setting r4
+move r1 gCO2t
+move r0 r4
+jal setcol
+# N2
+lbn r0 TA TN2 Pressure BM
+sbn TD lN2p Setting r0
+div r0 r0 RP
+sbn TG gN2p Setting r0
+move r1 gN2p
+move r2 lN2p
+jal setcol
+lbn r0 TA TN2 Temperature BM
+move r2 lN2t
+jal convtemp
+div r4 r4 RT
+sbn TG gN2t Setting r4
+move r1 gN2t
+move r0 r4
+jal setcol
+# Pollutant
+lbn r0 TA TPol Pressure BM
+sbn TD lPolp Setting r0
+div r0 r0 RP
+sbn TG gPolp Setting r0
+move r1 gPolp
+move r2 lPolp
+jal setcol
+lbn r0 TA TPol Temperature BM
+move r2 lPolt
+jal convtemp
+div r4 r4 RT
+sbn TG gPolt Setting r4
+move r1 gPolt
+move r0 r4
+jal setcol
+# CH4
+lbn r0 TA TCH4 Pressure BM
+sbn TD lCH4p Setting r0
+div r0 r0 RP
+sbn TG gCH4p Setting r0
+move r1 gCH4p
+move r2 lCH4p
+jal setcol
+lbn r0 TA TCH4 Temperature BM
+move r2 lCH4t
+jal convtemp
+div r4 r4 RT
+sbn TG gCH4t Setting r4
+move r1 gCH4t
+move r0 r4
+jal setcol
+# N2O
+lbn r0 TA TN2O Pressure BM
+sbn TD lN2Op Setting r0
+div r0 r0 RP
+sbn TG gN2Op Setting r0
+move r1 gN2Op
+move r2 lN2Op
+jal setcol
+lbn r0 TA TN2O Temperature BM
+move r2 lN2Ot
+jal convtemp
+div r4 r4 RT
+sbn TG gN2Ot Setting r4
+move r1 gN2Ot
+move r0 r4
+jal setcol
+# H2
+lbn r0 TA TH2 Pressure BM
+sbn TD lH2p Setting r0
+div r0 r0 RP
+sbn TG gH2p Setting r0
+move r1 gH2p
+move r2 lH2p
+jal setcol
+lbn r0 TA TH2 Temperature BM
+move r2 lH2t
+jal convtemp
+div r4 r4 RT
+sbn TG gH2t Setting r4
+move r1 gH2t
+move r0 r4
+jal setcol
+# Waste Analyzer
+lbn r0 TA TWst Pressure BM
+sbn TD lWstp Setting r0
+div r0 r0 48000   # Waste Druck (normieren auf 48kPa = 100% Füllung)
+sbn TG gWstp Setting r0
+move r1 gWstp
+move r2 lWstp
+jal setcol
+lbn r0 TA TWst Temperature BM
+move r2 lWstt
+jal convtemp
+div r4 r4 RT
+sbn TG gWstt Setting r4
+move r1 gWstt
+move r0 r4
+jal setcol
+# Ice Analyzer
+lbn r0 TA TIce Pressure BM
+sbn TD lIcep Setting r0
+div r0 r0 RP
+sbn TG gIcep Setting r0
+move r1 gIcep
+move r2 lIcep
+jal setcol
+lbn r0 TA TIce Temperature BM
+move r2 lIcet
+jal convtemp
+div r4 r4 RT
+sbn TG gIcet Setting r4
+move r1 gIcet
+move r0 r4
+jal setcol
+# BaseAtmo Analyzer
+lbn r0 TA TBaseAtmo Pressure BM
+sbn TD lBaseAtmoP Setting r0
+div r0 r0 10000   # BaseAtmo Druck (normieren auf 10kPa = 100% Füllung)
+sbn TG gBaseAtmoP Setting r0
+move r1 gBaseAtmoP
+move r2 lBaseAtmoP
+jal setcol
+lbn r0 TA TBaseAtmo Temperature BM
+move r2 lBaseAtmoT
+jal convtemp
+div r4 r4 586 # BaseAtmo Temp (normieren auf 586K = 313°C)
+sbn TG gBaseAtmoT Setting r4
+move r1 gBaseAtmoT
+move r0 r4
+jal setcol
+j main

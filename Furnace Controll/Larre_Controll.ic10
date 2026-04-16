@@ -1,135 +1,170 @@
 # LArRE Controller - Furnace Feeder
 define MEM HASH("StructureLogicMemory")
 define LARRE -522428667
+define EXPORTCHUTE 1957571043
 define Larre_Export 2
 define Larre_Furnace -5
 define Larre_Home 0
 
 Start:
-s db Setting 100
+sbn -246585138 HASH("StatusLarre") Setting 100
+lbn r12 LARRE HASH("FurnaceLarre") Quantity 3
+sbn -2041948072 HASH("QuantityLarreLED") Setting r12
 yield
-lbn r0 MEM HASH("MemStatus") Setting 3
+lbn r0 HASH("StructureCircuitHousing") HASH("Furnace_Database") Setting 3
 beq r0 0 Start
-# Trigger erkannt - Arm vom Rail holen
+sbn HASH("StructureCircuitHousing") HASH("Furnace_Database") Setting 0
+lbns r8 EXPORTCHUTE HASH("ExportChute") 0 Quantity 0
+sbn -2041948072 HASH("ExportChute") Setting r8
+beqz r8 Start
+
+ArmDetach:
 sbn LARRE HASH("FurnaceLarre") Activate 1
-yield
-yield
-yield
 jal WaitIdle
+
+ReadCmd:
 lbn r1 MEM HASH("MemCmd") Setting 3
 lbn r2 MEM HASH("MemQty") Setting 3
 max r2 r2 1
 mul r4 r2 2
 mul r5 r2 3
-move r6 0
-beq r1 0 Done
+beq r1 0 GoHome
 ble r1 7 SetSingle
 beq r1 8 SetSteel
 ble r1 12 SetDouble
 ble r1 17 SetTriple
-j Done
+j GoHome
 
 SetSingle:
 move r6 r2
-j GoFetch
+j ToExport
 SetSteel:
 add r6 r2 r5
-j GoFetch
+j ToExport
 SetDouble:
 add r6 r2 r2
-j GoFetch
+j ToExport
 SetTriple:
 add r6 r2 r4
 add r6 r6 r2
-j GoFetch
+j ToExport
 
-GoFetch:
-s db Setting 200
+# ── FAHRT ZUM EXPORT ─────────────────────────────────
+ToExport:
+sbn -246585138 HASH("StatusLarre") Setting 200
 sbn LARRE HASH("FurnaceLarre") Setting Larre_Export
 jal WaitIdle
+
+# ── SICHERSTELLEN DASS ARM EINGEZOGEN ────────────────
+EnsureRetracted:
+lbn r8 LARRE HASH("FurnaceLarre") Extended 3
+beqz r8 ArmExtend
+sbn LARRE HASH("FurnaceLarre") Activate 1
+WaitRetracted:
+yield
+lbn r8 LARRE HASH("FurnaceLarre") Extended 3
+bnez r8 WaitRetracted
+jal WaitIdle
+
+# ── ARM AUSFAHREN (sammeln) ───────────────────────────
+ArmExtend:
+sbn -246585138 HASH("StatusLarre") Setting 210
 sbn LARRE HASH("FurnaceLarre") Mode 1
 sbn LARRE HASH("FurnaceLarre") Activate 1
 move r9 0
 move r10 -1
 
+# ── WARTEN BIS VOLL ODER STALL ────────────────────────
 WaitCollect:
 yield
 lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
-add r11 300 r8
-s db Setting r11
-bge r8 r6 CollectDone
-beq r8 r10 Stall
+sbn -246585138 HASH("StatusLarre") Setting r8
+bge r8 r6 ArmRetract
+beq r8 r10 StallCheck
 move r9 0
 move r10 r8
 j WaitCollect
 
-Stall:
+StallCheck:
 add r9 r9 1
-add r11 310 r9
-s db Setting r11
 blt r9 3 WaitCollect
-s db Setting 999
-# Arm einziehen
-sbn LARRE HASH("FurnaceLarre") Activate 0
-yield
-yield
-yield
-sbn LARRE HASH("FurnaceLarre") Activate 1
-yield
-yield
-yield
-jal WaitIdle
-j AbortHome
+j ArmRetract
 
-CollectDone:
-s db Setting 400
-sbn LARRE HASH("FurnaceLarre") Activate 0
-yield
-yield
-yield
+# ── ARM EINZIEHEN ─────────────────────────────────────
+ArmRetract:
+sbn -246585138 HASH("StatusLarre") Setting 400
 sbn LARRE HASH("FurnaceLarre") Activate 1
+WaitArmIn:
 yield
-yield
-yield
+lbn r8 LARRE HASH("FurnaceLarre") Extended 3
+bnez r8 WaitArmIn
 jal WaitIdle
 
+# ── HAT DER ARM ITEMS? ────────────────────────────────
+CheckLoaded:
+sbn -246585138 HASH("StatusLarre") Setting 410
+lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
+beqz r8 GoHome
+j ToFurnace
+
+# ── FAHRT ZUM OFEN ────────────────────────────────────
+ToFurnace:
+sbn -246585138 HASH("StatusLarre") Setting 300
 sbn LARRE HASH("FurnaceLarre") Setting Larre_Furnace
 jal WaitIdle
-sbn LARRE HASH("FurnaceLarre") Mode 0
-sbn LARRE HASH("FurnaceLarre") Activate 1  # Arm ausfahren
-jal WaitIdle
-sbn LARRE HASH("FurnaceLarre") Activate 1  # NOCHMAL nach WaitIdle
-s db Setting 500
+# Idle=1 bestätigt, jetzt PositionX prüfen
+WaitAtFurnace:
+lbn r8 LARRE HASH("FurnaceLarre") PositionX 3
+bne r8 Larre_Furnace WaitAtFurnace
 
-WaitEmpty:
+# ── ARM AUSFAHREN (abladen) ───────────────────────────
+ArmUnload:
+sbn -246585138 HASH("StatusLarre") Setting 310
+sbn LARRE HASH("FurnaceLarre") Mode 0
+jal WaitIdle
+sbn LARRE HASH("FurnaceLarre") Activate 1
+sbn -246585138 HASH("StatusLarre") Setting 311
+WaitUnload:
 yield
 lbn r8 LARRE HASH("FurnaceLarre") Quantity 3
-add r11 500 r8
-s db Setting r11
-bgt r8 0 WaitEmpty
+sbn -246585138 HASH("StatusLarre") Setting r8
+bgt r8 0 WaitUnload
 
-AbortHome:
-s db Setting 600
+# ── ARM EINZIEHEN NACH ABLADEN ────────────────────────
+ArmRetractFurnace:
+sbn -246585138 HASH("StatusLarre") Setting 320
+WaitArmInFurnace:
+yield
+lbn r8 LARRE HASH("FurnaceLarre") Extended 3
+bnez r8 WaitArmInFurnace
+jal WaitIdle
+
+# ── NOCH WAS IM EXPORT? ───────────────────────────────
+CheckExportEmpty:
+sbn -246585138 HASH("StatusLarre") Setting 600
+lbns r8 EXPORTCHUTE HASH("ExportChute") 0 Quantity 0
+sbn -2041948072 HASH("ExportChute") Setting r8
+bgtz r8 ToExport
+j GoHome
+
+# ── FAHRT NACH HAUSE ──────────────────────────────────
+GoHome:
+sbn -246585138 HASH("StatusLarre") Setting 500
 sbn LARRE HASH("FurnaceLarre") Setting Larre_Home
 jal WaitIdle
-# Andocken an Home
+# ── ANDOCKEN HOME ─────────────────────────────────────
+ArmDock:
+yield
+lbn r8 LARRE HASH("FurnaceLarre") PositionX 3
+bne r8 Larre_Home ArmDock
+sbn -246585138 HASH("StatusLarre") Setting 150
 sbn LARRE HASH("FurnaceLarre") Activate 1
-yield
-yield
-yield
 jal WaitIdle
-# Arm vom Rail - Schlafposition
-sbn LARRE HASH("FurnaceLarre") Activate 1
-yield
-yield
-yield
-jal WaitIdle
-
 Done:
-s db Setting 700
-sbn MEM HASH("MemTrigger") Setting 0
+sbn -246585138 HASH("StatusLarre") Setting 700
 j Start
 
+# ── WAIT IDLE ─────────────────────────────────────────
 WaitIdle:
 yield
 WaitLoop:
