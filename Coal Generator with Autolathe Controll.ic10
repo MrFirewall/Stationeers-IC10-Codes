@@ -7,7 +7,7 @@ define Stapler -2020231820
 define Silo 1155865682
 define HashSensor -1252983604
 define NameSensor HASH("VakuumSensor")
-define HashVent -785498334       
+define HashVent -785498334 
 define NameVent HASH("VakuumVent")
 define Generator 813146305
 define Batterien -1388288459

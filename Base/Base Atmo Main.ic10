@@ -1,25 +1,25 @@
 # ==========================================
 # GERAETE
 # ==========================================
-define Mixer              2104106366
-define MixerName          HASH("RaumMixer")
-define KWRohrSensor       226055671
-define KWRohrSensorName   HASH("KWRohrSensor")
-define Ventil             -1280984102
-define VentilName         HASH("Ventil")
-define RaumAnalysator     435685051
+define Mixer 2104106366
+define MixerName HASH("RaumMixer")
+define KWRohrSensor 226055671
+define KWRohrSensorName HASH("KWRohrSensor")
+define Ventil -1280984102
+define VentilName HASH("Ventil")
+define RaumAnalysator 435685051
 define RaumAnalysatorName HASH("RaumAnalysator")
-define HeizungHash        -287495560
-define WallHeaterName     HASH("HausHeizung")
-define AutoLatheHash      336213101
+define HeizungHash -287495560
+define WallHeaterName HASH("HausHeizung")
+define AutoLatheHash 336213101
 define AutoLatheWaterName HASH("AutoLatheWater")
 # ==========================================
 # KONSTANTEN
 # ==========================================
-define MinWasser     278.15
-define HeizWasser    275.15
-define MaxRohrDruck  48000
-define MinRohrDruck  35000
+define MinWasser 278.15
+define HeizWasser 275.15
+define MaxRohrDruck 48000
+define MinRohrDruck 35000
 # ==========================================
 # INITIALISIERUNG
 # ==========================================

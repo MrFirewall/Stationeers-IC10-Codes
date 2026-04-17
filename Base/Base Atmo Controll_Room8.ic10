@@ -1,30 +1,30 @@
 # ==========================================
 # GERAETE – pro Raum anpassen
 # ==========================================
-define Sensor        -1252983604
-define SensorName    HASH("RaumSensor_Room8")
-define KuehlerHash   -1369060582
-define KuehlerName   HASH("HausKuehler_Room8")
-define HeizungHash   24258244
-define HeizungName   HASH("HausHeizung_Room8")
-define ZuluftHash    -785498334
-define ZuluftName    HASH("ZuluftFlur_Room8")
-define AbluftHash    -785498334
-define AbluftName    HASH("AbluftFlur_Room8")
+define Sensor -1252983604
+define SensorName HASH("RaumSensor_Room8")
+define KuehlerHash -1369060582
+define KuehlerName HASH("HausKuehler_Room8")
+define HeizungHash 24258244
+define HeizungName HASH("HausHeizung_Room8")
+define ZuluftHash -785498334
+define ZuluftName HASH("ZuluftFlur_Room8")
+define AbluftHash -785498334
+define AbluftName HASH("AbluftFlur_Room8")
 # ==========================================
 # SOLLWERTE & TOTBAND
 # ==========================================
-define TempSoll      294.15
-define DruckSoll     101
-define DruckTot      1
-define MaxCO2        0.05
+define TempSoll 294.15
+define DruckSoll 101
+define DruckTot 1
+define MaxCO2 0.05
 # ==========================================
 # PID-PARAMETER
 # ==========================================
-define Kp            0.5
-define Ki            0.02
-define Kd            1.0
-define WindupLimit   100
+define Kp 0.5
+define Ki 0.02
+define Kd 1.0
+define WindupLimit 100
 define WindupLimitMinus -100
 
 # ==========================================
@@ -50,26 +50,26 @@ lbn r4 Sensor SensorName RatioMethane 0
 lbn r5 Sensor SensorName RatioNitrousOxide 0
 lbn r6 Sensor SensorName Temperature 0
 # --- 2. Temperatur-PID ---
-sub r7 r6 TempSoll         # r7  = Fehler e(t)  [neg = zu kalt]
-mul r8 r7 Kp               # r8  = P-Term
-add r15 r15 r7             # Integral aufaddieren
-mul r9 r15 Ki              # r9  = I-Term
-sub r10 r7 r14             # Differenz zum letzten Fehler
-mul r10 r10 Kd             # r10 = D-Term
-add r11 r8 r9              # P+I
-add r11 r11 r10            # r11 = PID-Ausgabe
-move r14 r7                # letzten Fehler speichern
+sub r7 r6 TempSoll # r7 = Fehler e(t) [neg = zu kalt]
+mul r8 r7 Kp # r8 = P-Term
+add r15 r15 r7 # Integral aufaddieren
+mul r9 r15 Ki # r9 = I-Term
+sub r10 r7 r14 # Differenz zum letzten Fehler
+mul r10 r10 Kd # r10 = D-Term
+add r11 r8 r9 # P+I
+add r11 r11 r10 # r11 = PID-Ausgabe
+move r14 r7 # letzten Fehler speichern
 # Anti-Windup: Integral einfrieren wenn Grenze ueberschritten
 bgt r15 WindupLimit FreezeIntegral
 blt r15 WindupLimitMinus FreezeIntegral
 j ApplyTemp
 FreezeIntegral:
-sub r15 r15 r7             # letzten Schritt rueckgaengig
+sub r15 r15 r7 # letzten Schritt rueckgaengig
 # --- 3. Heizung & Kuehler schalten ---
 ApplyTemp:
-sgt r10 r11 0              # PID > 0 = zu warm -> Kuehler
+sgt r10 r11 0 # PID > 0 = zu warm -> Kuehler
 sbn KuehlerHash KuehlerName On r10
-slt r10 r11 0              # PID < 0 = zu kalt -> Heizung
+slt r10 r11 0 # PID < 0 = zu kalt -> Heizung
 sbn HeizungHash HeizungName On r10
 # --- 4. Gefahrstoffe & CO2 -> Abluft erzwingen ---
 move r10 0

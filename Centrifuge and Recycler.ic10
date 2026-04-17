@@ -23,7 +23,7 @@ lb r2 Centrifuge Reagents Maximum
 # Wenn Klappe offen ist (r1 = 1), Auswurf-Timer hochzählen
 beq r1 1 tick_eject_timer
 move r14 0 # Reset Auswurf-Timer, wenn zu
-    
+ 
 # Wenn Klappe zu ist und Reagenzien drin sind (>0), Timeout-Timer hochzählen
 bgt r2 0 tick_timeout_timer
 move r15 0 # Reset Timeout-Timer, wenn komplett leer

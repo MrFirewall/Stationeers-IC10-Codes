@@ -4,28 +4,28 @@
 # ice_analyzer: misst Gas nach Radiator (oder direkt aus Netz1)
 # ice_pump: pumpt in Netz2 nur wenn 273.15K-298.15K (0-25°C)
 
-define TEMP_COOL_ON  303.15   # >30°C  → Valve auf, Radiatoren kühlen
-define TEMP_COOL_OFF 278.15   # <5°C   → Valve zu, nicht zu kalt werden
-define PUMP_MIN      273.15   # 0°C    → Pumpe frühestens ein
-define PUMP_MAX      298.15   # 25°C   → Pumpe spätestens aus
-define PUMP_VOL      100
+define TEMP_COOL_ON 303.15 # >30°C → Valve auf, Radiatoren kühlen
+define TEMP_COOL_OFF 278.15 # <5°C → Valve zu, nicht zu kalt werden
+define PUMP_MIN 273.15 # 0°C → Pumpe frühestens ein
+define PUMP_MAX 298.15 # 25°C → Pumpe spätestens aus
+define PUMP_VOL 100
 
-define furnace       545937711
-define furnace_name  HASH("ice_furnace")
-define analyzer      435685051
+define furnace 545937711
+define furnace_name HASH("ice_furnace")
+define analyzer 435685051
 define analyzer_name HASH("ice_analyzer")
-define valve        -1280984102
-define valve_name    HASH("ice_valve")
-define pump          1310794736
-define pump_name     HASH("ice_pump")
+define valve -1280984102
+define valve_name HASH("ice_valve")
+define pump 1310794736
+define pump_name HASH("ice_pump")
 
 start:
 sbn furnace furnace_name Activate 1
 lbn r0 analyzer analyzer_name Temperature 3
 
 # --- Valve-Steuerung (Radiator-Kreislauf) ---
-bgt r0 TEMP_COOL_ON  valveOn    # zu heiss → Radiatoren zuschalten
-blt r0 TEMP_COOL_OFF valveOff   # zu kalt  → Radiatoren abkoppeln
+bgt r0 TEMP_COOL_ON valveOn # zu heiss → Radiatoren zuschalten
+blt r0 TEMP_COOL_OFF valveOff # zu kalt → Radiatoren abkoppeln
 # Zwischen 5-30°C: Valve-Zustand beibehalten (Hysterese)
 j pumpCheck
 
@@ -39,8 +39,8 @@ j pumpCheck
 
 # --- Pumpen-Steuerung (Transfer Netz1 → Netz2) ---
 pumpCheck:
-blt r0 PUMP_MIN  pumpOff   # unter 0°C  → nicht pumpen
-bgt r0 PUMP_MAX  pumpOff   # ueber 25°C → nicht pumpen
+blt r0 PUMP_MIN pumpOff # unter 0°C → nicht pumpen
+bgt r0 PUMP_MAX pumpOff # ueber 25°C → nicht pumpen
 sbn pump pump_name Setting PUMP_VOL
 sbn pump pump_name On 1
 j start
