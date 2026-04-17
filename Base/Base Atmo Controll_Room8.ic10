@@ -1,11 +1,11 @@
 # ==========================================
-# GERAETE  – pro Raum anpassen
+# GERAETE – pro Raum anpassen
 # ==========================================
 define Sensor        -1252983604
 define SensorName    HASH("RaumSensor_Room8")
 define KuehlerHash   -1369060582
 define KuehlerName   HASH("HausKuehler_Room8")
-define HeizungHash   -287495560
+define HeizungHash   24258244
 define HeizungName   HASH("HausHeizung_Room8")
 define ZuluftHash    -785498334
 define ZuluftName    HASH("ZuluftFlur_Room8")
@@ -19,16 +19,17 @@ define DruckSoll     101
 define DruckTot      1
 define MaxCO2        0.05
 # ==========================================
-# PID-PARAMETER (Temperatur)
+# PID-PARAMETER
 # ==========================================
 define Kp            0.5
-define Ki            0.01
-define Kd            2.0
+define Ki            0.02
+define Kd            1.0
+define WindupLimit   100
+define WindupLimitMinus -100
+
 # ==========================================
 # INITIALISIERUNG
 # ==========================================
-# r15 = PID Integral-Speicher
-# r14 = letzter Fehler (D-Term)
 move r15 0
 move r14 0
 sbn ZuluftHash ZuluftName Mode 0
@@ -40,7 +41,7 @@ sbn AbluftHash AbluftName PressureExternal 0
 # ==========================================
 Main:
 yield
-# --- 1. Sensordaten lesen (Average ueber alle Sensoren) ---
+# --- 1. Sensordaten lesen ---
 lbn r0 Sensor SensorName Pressure 0
 lbn r1 Sensor SensorName RatioCarbonDioxide 0
 lbn r2 Sensor SensorName RatioPollutant 0
@@ -49,50 +50,50 @@ lbn r4 Sensor SensorName RatioMethane 0
 lbn r5 Sensor SensorName RatioNitrousOxide 0
 lbn r6 Sensor SensorName Temperature 0
 # --- 2. Temperatur-PID ---
-sub r7 r6 TempSoll         # r7  = Fehler e(t)
+sub r7 r6 TempSoll         # r7  = Fehler e(t)  [neg = zu kalt]
 mul r8 r7 Kp               # r8  = P-Term
 add r15 r15 r7             # Integral aufaddieren
 mul r9 r15 Ki              # r9  = I-Term
-sub r10 r7 r14             # Delta zum letzten Fehler
+sub r10 r7 r14             # Differenz zum letzten Fehler
 mul r10 r10 Kd             # r10 = D-Term
-add r11 r8 r9              # r11 = P+I
+add r11 r8 r9              # P+I
 add r11 r11 r10            # r11 = PID-Ausgabe
-move r14 r7                # letzten Fehler merken
-# Anti-Windup: Integral reset bei Sattigung
-bgt r11 10 ClampReset
-blt r11 -10 ClampReset
+move r14 r7                # letzten Fehler speichern
+# Anti-Windup: Integral einfrieren wenn Grenze ueberschritten
+bgt r15 WindupLimit FreezeIntegral
+blt r15 WindupLimitMinus FreezeIntegral
 j ApplyTemp
-ClampReset:
-move r15 0
+FreezeIntegral:
+sub r15 r15 r7             # letzten Schritt rueckgaengig
 # --- 3. Heizung & Kuehler schalten ---
 ApplyTemp:
-sgt r10 r11 0
+sgt r10 r11 0              # PID > 0 = zu warm -> Kuehler
 sbn KuehlerHash KuehlerName On r10
-slt r10 r11 0
+slt r10 r11 0              # PID < 0 = zu kalt -> Heizung
 sbn HeizungHash HeizungName On r10
-# --- 4. Gefahrstoffe & CO2 pruefen -> Abluft erzwingen ---
+# --- 4. Gefahrstoffe & CO2 -> Abluft erzwingen ---
 move r10 0
-bgt r2 0 ForceAbluft       # Pollutant
-bgt r3 0 ForceAbluft       # Hydrogen
-bgt r4 0 ForceAbluft       # Methane
-bgt r5 0 ForceAbluft       # NitrousOxide
-bgt r1 MaxCO2 ForceAbluft  # CO2
+bgt r2 0 ForceAbluft
+bgt r3 0 ForceAbluft
+bgt r4 0 ForceAbluft
+bgt r5 0 ForceAbluft
+bgt r1 MaxCO2 ForceAbluft
 j DruckCheck
 ForceAbluft:
 move r10 1
-# --- 5. Druckregelung (Bang-Bang mit Totband) ---
+# --- 5. Druckregelung ---
 DruckCheck:
-bne r10 1 DruckLogik       # wenn Gefahrstoff -> Abluft bereits gesetzt
+bne r10 1 DruckLogik
 sbn AbluftHash AbluftName On 1
 sbn ZuluftHash ZuluftName On 0
 j Main
 DruckLogik:
-sub r12 r0 DruckSoll       # r12 = Druckfehler
+sub r12 r0 DruckSoll
 abs r13 r12
-blt r13 DruckTot DruckOk   # im Totband -> Ventile zu
-slt r10 r12 0              # Unterdruck -> Zuluft auf
+blt r13 DruckTot DruckOk
+slt r10 r12 0
 sbn ZuluftHash ZuluftName On r10
-sgt r10 r12 0              # Ueberdruck -> Abluft auf
+sgt r10 r12 0
 sbn AbluftHash AbluftName On r10
 j Main
 DruckOk:

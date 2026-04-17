@@ -69,7 +69,7 @@ j Switch
 Switch:
 sbn TypeHeater HASH("Heater") On HeaterState
 sbn TypeTurbo HASH("Volumenpumpe0") On Run
-sb TypeTurbo Setting 100
+sbn TypeTurbo HASH("Volumenpumpe0") Setting 100
 # Temperaturfenster 10-20°C (283.15-293.15 K)
 sge r8 Temp 283.15
 sle r9 Temp 293.15

@@ -33,22 +33,45 @@ define LEDKaltName HASH("LEDKalt")
 define LEDWarmName HASH("LEDWarm")
 define VendingHash -1577831321
 define VendingName HASH("ColdGasVendingMachine")
-define FurnaceHash 545937711
+define FurnaceHash 443849486
 define FurnaceName HASH("ice_furnace")
 
 # Warmgas Zielbereich
-define WarmHigh 253.15
-define WarmLow 243.15
+define WarmHigh 225.15
+define WarmLow 205.15
 
 loop:
 yield
-
+sbn FurnaceHash FurnaceName Setting 140
+sbn FurnaceHash FurnaceName On 1
 # --- Autolathe Eisproduktion ---
-lbn PumpSetting Autolathe AutolatheName Activate 3
+lbn PumpSetting Autolathe AutolatheName Activate 1
 beq PumpSetting 1 SkipLathe
 sbn Autolathe AutolatheName RecipeHash IceHash
 sbn Autolathe AutolatheName Activate 1
+
+sbn Autolathe AutolatheName On 1
+sbn Autolathe AutolatheName Activate 1
+lbn r3 Autolathe AutolatheName RecipeHash 0
+beq r3 IceHash chkLathe
+j fixLathe
+chkLathe:
+lbn r3 Autolathe AutolatheName CompletionRatio 0
+seqz r5 r3
+beqz r5 SkipLathe
+fixLathe:
+sbn Autolathe AutolatheName Activate 0
+sbn Autolathe AutolatheName On 1
+yield
+yield
+yield
+sbn Autolathe AutolatheName RecipeHash IceHash
+yield
+sbn Autolathe AutolatheName On 1
+sbn Autolathe AutolatheName Activate 1
+sbn -815193061 HASH("SILO_DEBUG") Setting r3
 SkipLathe:
+
 
 # --- Sensoren lesen ---
 lbn KaltPress KaltAnalyzerHash KaltAnalyzerName Pressure 3
@@ -115,8 +138,9 @@ and IsCold IsCold r4
 seqz r4 IsCold
 and VentState VentState r4
 sbn PoweredVentHash PoweredVentName On VentState
-sbn PoweredVentHash PoweredVentName PressureExternal 0
-sbn DigVentilHash DigVentilName On VentState
+sbn PoweredVentHash PoweredVentName PressureExternal 50000
+sbn TurboPumpeHash DigVentilName On VentState
+sbn TurboPumpeHash DigVentilName Setting 100
 
 # --- LEDs ---
 sbn LEDHash LEDKaltName Setting KaltPress

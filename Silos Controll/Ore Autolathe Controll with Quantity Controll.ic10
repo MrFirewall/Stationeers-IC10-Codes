@@ -24,7 +24,7 @@ define Silver HASH("Silver")
 define Cobalt_HASH -983091249
 define Cobalt HASH("Cobalt")
 define Uranium_HASH -1516581844
-define Uranium HASH("Uranium")
+define Uranium HASH("Uran")
 sb AL_TYPE Lock 0
 sb ST_TYPE On 1
 sb ST_TYPE Setting 200
@@ -289,5 +289,6 @@ sbn AL_TYPE Uranium RecipeHash Uranium_HASH
 yield
 sbn AL_TYPE Uranium On 1
 sbn AL_TYPE Uranium Activate 1
+sbn -815193061 HASH("SILO_DEBUG") Setting r3
 skip_Uran:
 j main

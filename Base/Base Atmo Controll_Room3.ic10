@@ -2,15 +2,15 @@
 # GERAETE – pro Raum anpassen
 # ==========================================
 define Sensor        -1252983604
-define SensorName    HASH("RaumSensor_Room11")
+define SensorName    HASH("RaumSensor_Room3")
 define KuehlerHash   -1369060582
-define KuehlerName   HASH("HausKuehler_Room11")
+define KuehlerName   HASH("HausKuehler_Room3")
 define HeizungHash   24258244
-define HeizungName   HASH("HausHeizung_Room11")
+define HeizungName   HASH("HausHeizung_Room3")
 define ZuluftHash    -785498334
-define ZuluftName    HASH("ZuluftFlur_Room11")
+define ZuluftName    HASH("ZuluftFlur_Room3")
 define AbluftHash    -785498334
-define AbluftName    HASH("AbluftFlur_Room11")
+define AbluftName    HASH("AbluftFlur_Room3")
 # ==========================================
 # SOLLWERTE & TOTBAND
 # ==========================================

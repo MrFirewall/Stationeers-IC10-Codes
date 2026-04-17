@@ -1,6 +1,19 @@
+# ============================================================
+# LogicSorter Filter Controller
+# Setzt Filter dynamisch basierend auf Silo-Füllstand
+# Wenn Silo voll -> Mode 0 (passthrough), sonst Mode 1
+# Loop: evaluiert alle Filter jedes yield
+# ============================================================
+
 define SORTER 873418029
 define STAPLER -2020231820
+define SILO_TYPE 1155865682
 define OP 1
+
+# Maximaler Füllstand eines Silos (Standard: 580, abhängig vom Silo-Typ)
+# Passe diesen Wert ggf. an deine Silo-Kapazität an!
+define SILO_MAX 580
+
 define Iron HASH("Iron")
 define ICON_Iron HASH("ItemIronOre")
 define Gold HASH("Gold")
@@ -61,159 +74,282 @@ define PIHydrazine HASH("PureIceHydrazine")
 define ICON_PIHydrazine HASH("ItemPureIceHydrazine")
 define Coal HASH("Coal")
 define ICON_Coal HASH("ItemCoalOre")
+
+init:
 sb SORTER On 1
 sb STAPLER Setting 50
 sb STAPLER On 1
+
+loop:
+# --- Iron ---
 lbn r0 SORTER Iron ReferenceId Maximum
+lbn r2 SILO_TYPE Iron Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Iron 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Gold ---
 lbn r0 SORTER Gold ReferenceId Maximum
+lbn r2 SILO_TYPE Gold Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Gold 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Copper ---
 lbn r0 SORTER Copper ReferenceId Maximum
+lbn r2 SILO_TYPE Copper Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Copper 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Nickel ---
 lbn r0 SORTER Nickel ReferenceId Maximum
+lbn r2 SILO_TYPE Nickel Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Nickel 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Silver ---
 lbn r0 SORTER Silver ReferenceId Maximum
+lbn r2 SILO_TYPE Silver Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Silver 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Lead ---
 lbn r0 SORTER Lead ReferenceId Maximum
+lbn r2 SILO_TYPE Lead Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Lead 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Silicon ---
 lbn r0 SORTER Silicon ReferenceId Maximum
+lbn r2 SILO_TYPE Silicon Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Silicon 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Steel ---
 lbn r0 SORTER Steel ReferenceId Maximum
+lbn r2 SILO_TYPE Steel Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Steel 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Uranium ---
 lbn r0 SORTER Uran ReferenceId Maximum
+lbn r2 SILO_TYPE Uran Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Uran 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+lbn r2 SORTER Uran Mode 3
+# --- Electrum ---
 lbn r0 SORTER Electrum ReferenceId Maximum
+lbn r2 SILO_TYPE Electrum Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Electrum 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Invar ---
 lbn r0 SORTER Invar ReferenceId Maximum
+lbn r2 SILO_TYPE Invar Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Invar 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Constantan ---
 lbn r0 SORTER Constantan ReferenceId Maximum
+lbn r2 SILO_TYPE Constantan Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Constantan 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Solder ---
 lbn r0 SORTER Solder ReferenceId Maximum
+lbn r2 SILO_TYPE Solder Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Solder 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Astroloy ---
 lbn r0 SORTER Astroloy ReferenceId Maximum
+lbn r2 SILO_TYPE Astroloy Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Astroloy 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Hastelloy ---
 lbn r0 SORTER Hastelloy ReferenceId Maximum
+lbn r2 SILO_TYPE Hastelloy Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Hastelloy 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Inconel ---
 lbn r0 SORTER Inconel ReferenceId Maximum
+lbn r2 SILO_TYPE Inconel Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Inconel 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Stellite ---
 lbn r0 SORTER Stellite ReferenceId Maximum
+lbn r2 SILO_TYPE Stellite Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Stellite 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Waspaloy ---
 lbn r0 SORTER Waspaloy ReferenceId Maximum
+lbn r2 SILO_TYPE Waspaloy Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Waspaloy 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Cobalt ---
 lbn r0 SORTER Cobalt ReferenceId Maximum
+lbn r2 SILO_TYPE Cobalt Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Cobalt 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Steam ---
 lbn r0 SORTER PISteam ReferenceId Maximum
+lbn r2 SILO_TYPE PISteam Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PISteam 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Silanol ---
 lbn r0 SORTER PISilanol ReferenceId Maximum
+lbn r2 SILO_TYPE PISilanol Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PISilanol 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Pollutant ---
 lbn r0 SORTER PIPollut ReferenceId Maximum
+lbn r2 SILO_TYPE PIPollut Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PIPollut 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Ozone ---
 lbn r0 SORTER PIOzone ReferenceId Maximum
+lbn r2 SILO_TYPE PIOzone Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PIOzone 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Oxygen ---
 lbn r0 SORTER PIOxygen ReferenceId Maximum
+lbn r2 SILO_TYPE PIOxygen Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PIOxygen 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Nitrous ---
 lbn r0 SORTER PINitrous ReferenceId Maximum
+lbn r2 SILO_TYPE PINitrous Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PINitrous 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Nitrogen ---
 lbn r0 SORTER PINitrogen ReferenceId Maximum
+lbn r2 SILO_TYPE PINitrogen Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PINitrogen 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Volatiles ---
 lbn r0 SORTER PIVolat ReferenceId Maximum
+lbn r2 SILO_TYPE PIVolat Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PIVolat 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Hydrogen ---
 lbn r0 SORTER PIHydrogen ReferenceId Maximum
+lbn r2 SILO_TYPE PIHydrogen Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PIHydrogen 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- PureIce Hydrazine ---
 lbn r0 SORTER PIHydrazine ReferenceId Maximum
+lbn r2 SILO_TYPE PIHydrazine Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_PIHydrazine 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
+
+# --- Coal ---
 lbn r0 SORTER Coal ReferenceId Maximum
+lbn r2 SILO_TYPE Coal Quantity 3
+slt r4 r2 SILO_MAX
 sll r1 ICON_Coal 8
 or r1 r1 OP
+mul r1 r1 r4
 put r0 0 r1
-s r0 Mode 1
-done:
+
 yield
-j done
+j loop
